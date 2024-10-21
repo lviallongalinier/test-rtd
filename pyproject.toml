@@ -1,0 +1,13 @@
+[project]
+name = "snowprofile"
+version = "0.0.1"
+dependencies = [
+    'pydantic',
+    'pandas',
+]
+requires-python = ">=3.8"
+
+description = "Tools to read and write punctual snow profiles. It includes tools to read and write from and to the international CAAML format."
+readme = "README.md"
+license = { file = "LICENCE.txt", file = "LICENCE_fr.txt" }
+keywords = ["snow profile", "CAAML"]
