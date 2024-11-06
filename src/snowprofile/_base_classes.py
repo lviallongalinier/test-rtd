@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 
+"""
+Base Classes and field validators that are used in the snowprofile, classes, profiles
+stability_tests packages.
+"""
+
 import datetime
 import typing
+import logging
 
 import pydantic
 import pydantic.json_schema
@@ -13,7 +19,7 @@ class AdditionalData(pydantic.BaseModel):
     data: typing.Any
 
 
-def force_utc(cls, value: datetime.datetime) -> datetime.datetime:
+def force_utc(value: datetime.datetime) -> datetime.datetime:
     """
     Force the tzinfo to be defined in a python datetime object.
     In case the tzinfo is not provided, assume UTC.
@@ -27,17 +33,127 @@ def force_utc(cls, value: datetime.datetime) -> datetime.datetime:
 datetime_with_tz = typing.Annotated[datetime.datetime, pydantic.BeforeValidator(force_utc)]
 
 
-def force_utc_tuple(cls, value):
+def force_utc_tuple(value: tuple) -> tuple:
     """
     Same as force_utc but for all elements of a tuple.
     """
     for i in range(len(value)):
         value[i] = force_utc(value[i])
+    return value
 
 
 datetime_tuple_with_tz = typing.Annotated[typing.Tuple[typing.Optional[datetime.datetime],
                                                        typing.Optional[datetime.datetime]],
                                           pydantic.BeforeValidator(force_utc_tuple)]
+
+
+def get_dataframe_checker(_mode='Layer', **kwargs):
+    """
+    Checker for pandas DataFrame to be put in a ``data`` field.
+
+    :param _mode: Point or Layer
+    :param kwargs: dict:
+        keys : list of columns ot be accepted
+        values : dict with constraints on the content of the columns, keys are:
+            - translate: dict of replacement for values.
+            - type: data type (float, int, str, etc.)
+            - optional (bool): Optional or not (default is False)
+            - min: for numeric types, the minimum value possible (included)
+            - max: for numeric types, the maximim value possible (included)
+            - nan_allowed: for numeric types, allow nan or not (default is False)
+            - values: the list of accepted values
+    """
+    def check_dataframe(value, cls):
+        # Check type -> ensure we have a pandas DataFrame
+        if isinstance(value, dict):
+            value = pd.DataFrame(value)
+        elif isinstance(value, pd.DataFrame):
+            pass
+        else:
+            raise ValueError('data key should be a pandas DataFrame or a python dictionnary.')
+
+        # Check columns
+        columns = set(value.columns)
+        if _mode == 'Layer':
+            two_of_three = set(['top_depth', 'bottom_depth', 'thickness'])
+            if len(columns.intersection(two_of_three)) != 2:
+                raise ValueError('Should have 2 of three in {", ".join(two_of_three)}.')
+            accepted_columns_min = set([])
+            accepted_columns_max = set(['top_depth', 'bottom_depth', 'thickness'])
+        else:
+            accepted_columns_min = set(['depth'])
+            accepted_columns_max = set(['depth'])
+
+        columns_min = []
+        for k, v in kwargs.items():
+            if 'optional' in v and v['optional']:
+                continue
+            else:
+                columns.min.append(k)
+        columns_min = set(columns_min) | accepted_columns_min
+        columns_max = set(kwargs.keys()) | accepted_columns_max
+        if not columns.issuperset(columns_min):
+            raise ValueError(f'The data should contain at least the following columns: {", ".join(columns_min)}.')
+        if not columns.issubset(columns_max):
+            raise ValueError(f'The data should contain at most the following columns: {", ".join(columns_max)}.')
+
+        # Depths processing
+        # - Ensure types
+        if _mode == 'Layer':
+            depth_keys = ['top_depth', 'bottom_depth', 'thickness']
+        else:
+            depth_keys = ['depth']
+        for key in depth_keys:
+            if key in columns:
+                value['key'] = value['key'].astype('float')
+        # - Completion of columns to ensure that top_depth, bottom_depth an dthickess are defined and coherent
+        if _mode == 'Layer':
+            if 'top_depth' not in columns:
+                value['top_depth'] = value['bottom_depth'] + value['thickness']
+            if 'bottom_depth' not in columns:
+                value['bottom_depth'] = value['top_depth'] - value['thickness']
+            if 'thickness' not in columns:
+                value['thickness'] = value['top_depth'] - value['bottom_depth']
+        # - Ensure reasonnable values and no nan
+        for key in depth_keys:
+            if pd.isna(value[key]).any():
+                raise ValueError(f'Nan values are not allowed in {key} field')
+            if value[key].min() < 0:
+                raise ValueError(f'Negative values for {key} is not accepted.')
+            if value[key].max() > 10:
+                logging.warn(f'Values above 10m for {key}. Please check your data !')
+
+        # Check other data
+        for key, d in kwargs.items():
+            # Replace values if needed
+            if 'translate' in d:
+                value[key] = value[key].replace(d['translate'])
+            # Check type
+            _type = d['type'] if 'type' in d else 'float'
+            value[key] = value[key].astype(_type)
+            # Check min/max for numeric types
+            if pd.isna(value[key].min()):
+                logging.warn(f'Data from key {key} is empty !')
+            if 'min' in d:
+                _min = d['min']
+                if not pd.isna(value[key].min()) and value[key].min() < _min:
+                    raise ValueError(f'Data from key {key} has unaccepted values (below {_min}).')
+            if 'max' in d:
+                _max = d['max']
+                if not pd.isna(value[key].max()) and value[key].max() > _max:
+                    raise ValueError(f'Data from key {key} has unaccepted values (above {_max}).')
+            # Check nan presence
+            nan_allowed = d['nan_allowed'] if 'nan_allowed' in d else False
+            if not nan_allowed and pd.isna(value[key]).any():
+                raise ValueError(f'Nan values are not allowed in {key} field')
+            # Check fixed allowed values if needed
+            if 'values' in d:
+                if not set(value[key].values).issubset(set(d['values'])):
+                    raise ValueError(f'Unauthorized value for key {key}')
+
+        return value.sort_values(depth_keys[0], ascending=False)
+
+    return check_dataframe
 
 
 class BaseProfile(pydantic.BaseModel):
@@ -123,9 +239,7 @@ class BaseProfileLayeredData(BaseProfileLayered, BaseProfileFields):
     For depth, zero is at bottom of the snowpack.
     """
 
-    # TODO: Implement a rewritting of arrays so that they are always presented in the same order  <18-10-24, LVG> #
     # TODO: Implement a method to insert a layer with top_depth, thicknesses, comments  <18-10-24, LVG> #
-    # TODO: Implement check of data pandas dataframe  <18-10-24, Léo Viallon-Galinier> #
 
 
 class BaseProfilePointData(BaseProfile, BaseProfileFields):
