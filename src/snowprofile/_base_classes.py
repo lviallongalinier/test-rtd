@@ -196,8 +196,6 @@ class BaseProfileFields:
     """
     Base fields for all profiles except stratigraphy
     """
-    data: typing.Annotated[pd.DataFrame, pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data (SI units)")
     quality_of_measurement: typing.Optional[typing.Literal[
         'Good', 'Uncertain', 'Low', 'Bad']] = pydantic.Field(
             None,

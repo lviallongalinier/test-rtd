@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+"""
+Various constants and common definitions.
+"""
+
 cloudiness_attribution = {
     0: 'CLR',
     1: 'FEW',
@@ -12,3 +16,60 @@ cloudiness_attribution = {
     8: 'OVC',
     -1: 'X'}
 """ Conversion table between cloudinessiness and METAR """
+
+QUALITY_FLAGS = ['Good', 'Uncertain', 'Low', 'Bad']
+
+GRAIN_SHAPES = ["PP", "PPco", "PPnd", "PPpl", "PPsd", "PPir", "PPgp", "PPhl", "PPip", "PPrm",
+                "MM", "MMrp", "MMci",
+                "DF", "DFdc", "DFbk",
+                "RG", "RGsr", "RGlr", "RGwp", "RGxf",
+                "FC", "FCso", "FCsf", "FCxr",
+                "DH", "DHcp", "DHpr", "DHch", "DHla", "DHxr",
+                "SH", "SHsu", "SHcv", "SHxr",
+                "MF", "MFcl", "MFpc", "MFsl", "MFcr",
+                "IF", "IFil", "IFic", "IFbi", "IFrc", "IFsc"]
+
+MANUAL_WETNESS = ['D', 'D-M', 'M', 'M-W', 'W', 'W-V', 'V', 'V-S', 'S']
+
+manual_wetness_attribution = {
+    1: 'D',
+    '1': 'D',
+    1.5: 'D-M',
+    '1.5': 'D-M',
+    2: 'M',
+    '2': 'M',
+    2.5: 'M-W',
+    '2.5': 'M-W',
+    3: 'W',
+    '3': 'W',
+    3.5: 'W-V',
+    '3.5': 'W-V',
+    4: 'V',
+    '4': 'V',
+    4.5: 'V-S',
+    '4.5': 'V-S',
+    5: 'S',
+    '5': 'S'}
+
+MANUAL_HARDNESS = ['F', 'F-4F', '4F', '4F-1F', '1F', '1F-P', 'P', 'P-K', 'K', 'K-I', 'I',
+                   'F-', 'F+', '4F-', '4F+', '1F-', '1F+', 'P-', 'P+', 'K-', 'K+']
+
+manual_hardness_attribution = {
+    1: 'F',
+    '1': 'F',
+    1.5: 'F-4F',
+    '1.5': 'F-4F',
+    2: '4F',
+    '2': '4F',
+    2.5: '4F-1F',
+    '2.5': '4F-1F',
+    3: '1F',
+    '3': '1F',
+    3.5: '1F-P',
+    '3.5': '1F-P',
+    4: 'P',
+    '4': 'P',
+    4.5: 'P-K',
+    '4.5': 'P-K',
+    5: 'K',
+    '5': 'K'}

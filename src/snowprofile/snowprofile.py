@@ -6,7 +6,7 @@ import pydantic
 
 from snowprofile.classes import Time, Observer, Location, Weather, SurfaceConditions
 from snowprofile.profiles import Stratigraphy, TemperatureProfile, DensityProfile, LWCProfile, _SSAProfile, \
-    HardnessProfile, StrengthProfile, ImpurityProfile
+    _HardnessProfile, StrengthProfile, ImpurityProfile
 from snowprofile.stability_tests import _StabilityTest
 from snowprofile._base_classes import AdditionalData
 
@@ -146,7 +146,7 @@ class SnowProfile(pydantic.BaseModel):
     density_profiles: typing.List[DensityProfile] = []
     lwc_profiles: typing.List[LWCProfile] = []
     ssa_profiles: typing.List[_SSAProfile] = []
-    hardness_profiles: typing.List[HardnessProfile] = []
+    hardness_profiles: typing.List[_HardnessProfile] = []
     strength_profiles: typing.List[StrengthProfile] = []
     impurity_profiles: typing.List[ImpurityProfile] = []
     stability_tests: typing.List[_StabilityTest] = []  # To change: accept different stability tests
