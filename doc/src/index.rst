@@ -18,6 +18,17 @@ snowprofile project allow to manage observed snow profiles:
 Basics
 ------
 
+Concepts to understand before using the module
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   uncertainties.rst
+
+Base data classes
+^^^^^^^^^^^^^^^^^
+
 .. toctree::
    :maxdepth: 1
 
