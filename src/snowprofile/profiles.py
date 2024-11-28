@@ -47,17 +47,32 @@ class Stratigraphy(BaseProfileLayered):
                                                                                        values=MANUAL_WETNESS + [None],
                                                                                        translate=manual_wetness_attribution,
                                                                                        ),
+                                                                          loc=dict(type='O',
+                                                                                   optional=True,
+                                                                                   values=['no', 'top', 'bottom', 'all']),
                                                                           uncertainty=dict(optional=True,
                                                                                            nan_allowed=True),
                                                                           quality=dict(optional=True,
                                                                                        type='O',
                                                                                        values=QUALITY_FLAGS + [None]),
+                                                                          comment=dict(optional=True,
+                                                                                       type='O', ),
+                                                                          additional_data=dict(optional=True,
+                                                                                               type='O', ),
+                                                                          formation_time=dict(optional=True,
+                                                                                              type='O'),
+                                                                          formation_period_begin=dict(optional=True,
+                                                                                                      type='O'),
+                                                                          formation_period_end=dict(optional=True,
+                                                                                                    type='O'),
                                                                           )
                                                     ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
                            pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
         description="The profile data. Pandas DataFrame with columns are "
         "``top_depth``, ``bottom_depth``, ``thickness``, "
-        "``grain_1``, ``grain_2``, ``grain_size``, ``grain_size_max``, ``hardness`` (manual hardness), ``wetness`` (manual class)"
+        "``grain_1``, ``grain_2``, ``grain_size``, ``grain_size_max``, ``hardness`` (manual hardness), "
+        "``wetness`` (manual class) "
         "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
 
 
@@ -73,6 +88,7 @@ class TemperatureProfile(BaseProfilePointData):
                                                                                        values=QUALITY_FLAGS + [None]),
                                                                           )
                                                     ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
                            pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
         description="The profile data. Pandas DataFrame with columns are ``depth``, ``temperature`` (°C) "
         "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
@@ -110,6 +126,7 @@ class DensityProfile(BaseProfileLayeredData):
                                                                                        values=QUALITY_FLAGS + [None]),
                                                                           )
                                                     ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
                            pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
         description="The profile data. Pandas DataFrame with columns are "
         "``top_depth``, ``bottom_depth``, ``thickness``, ``density`` (kg/m3) "
@@ -137,6 +154,7 @@ class LWCProfile(BaseProfileLayeredData):
                                                                                        values=QUALITY_FLAGS + [None]),
                                                                           )
                                                     ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
                            pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
         description="The profile data. Pandas DataFrame with columns are "
         "``top_depth``, ``bottom_depth``, ``thickness``, ``lwc`` (% vol.) "
@@ -175,6 +193,7 @@ class SSAProfile(BaseProfileLayeredData, _SSAProfile):
                                                                                        values=QUALITY_FLAGS + [None]),
                                                                           )
                                                     ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
                            pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
         description="The profile data. Pandas DataFrame with columns are "
         "``top_depth``, ``bottom_depth``, ``thickness``, ``ssa`` (m2/kg) "
@@ -195,6 +214,7 @@ class SSAPointProfile(BaseProfilePointData, _SSAProfile):
                                                                                        values=QUALITY_FLAGS + [None]),
                                                                           )
                                                     ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
                            pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
         description="The profile data. Pandas DataFrame with columns are ``depth``, ``ssa`` (m2/kg) "
         "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
@@ -228,6 +248,7 @@ class HardnessProfile(_HardnessProfile):
                                                                                        values=QUALITY_FLAGS + [None]),
                                                                           )
                                                     ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
                            pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
         description="The profile data. Pandas DataFrame with columns are "
         "``top_depth``, ``bottom_depth``, ``thickness``, ``hardness`` (N) "
@@ -288,6 +309,7 @@ class StrengthProfile(BaseProfileLayeredData):
                                                                                        values=QUALITY_FLAGS + [None]),
                                                                           )
                                                     ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
                            pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
         description="The profile data. Pandas DataFrame with columns are "
         "``top_depth``, ``bottom_depth``, ``thickness``, ``strength`` (N), ``fracture_character`` (optional) "
@@ -344,13 +366,14 @@ class ImpurityProfile(BaseProfileLayeredData):
                                                                                        values=QUALITY_FLAGS + [None]),
                                                                           )
                                                     ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
                            pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
         description="The profile data. Pandas DataFrame with columns are "
         "``top_depth``, ``bottom_depth``, ``thickness``, ``mass_fraction`` or ``volume_fraction`` "
         "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
 
 
-class OtherScalarProfile(BaseProfileLayeredData):
+class ScalarProfile(BaseProfileLayeredData):
     """
     Other profile of scalar data (not covered by other Profile class).
     """
@@ -368,13 +391,14 @@ class OtherScalarProfile(BaseProfileLayeredData):
                                                                                        values=QUALITY_FLAGS + [None]),
                                                                           )
                                                     ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
                            pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
         description="The profile data. Pandas DataFrame with columns are "
         "``top_depth``, ``bottom_depth``, ``thickness``, ``data`` "
         "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
 
 
-class OtherVectorialProfile(OtherScalarProfile):
+class VectorialProfile(ScalarProfile):
     """
     Other profile of vectorial data (data inherently multi-dimensional, with same unit and type).
     """

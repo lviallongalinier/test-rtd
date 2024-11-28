@@ -4,9 +4,9 @@ import typing
 
 import pydantic
 
-from snowprofile.classes import Time, Observer, Location, Weather, SurfaceConditions
+from snowprofile.classes import Time, Observer, Location, Weather, SurfaceConditions, Environment
 from snowprofile.profiles import Stratigraphy, TemperatureProfile, DensityProfile, LWCProfile, _SSAProfile, \
-    _HardnessProfile, StrengthProfile, ImpurityProfile
+    _HardnessProfile, StrengthProfile, ImpurityProfile, ScalarProfile, VectorialProfile
 from snowprofile.stability_tests import _StabilityTest
 from snowprofile._base_classes import AdditionalData
 
@@ -26,6 +26,9 @@ class SnowProfile(pydantic.BaseModel):
       A unique id to identify the snow profile (optional, str, only [a-zA-Z0-9-])
 
     comment
+      General comment on the overall measurement (optional, str)
+
+    profile_comment
       General comment on the snow profile (optional, str)
 
     time
@@ -66,6 +69,16 @@ class SnowProfile(pydantic.BaseModel):
 
     new_snow_24_swe_std
       Standard deviation of the measured new snow SWE (in case of mutilple measurements, mm or kg/m2)
+
+    snow_transport
+      Presence and type of snow transport
+
+      - No snow transport
+      - Modified saltation: snow transport that remains confined close to the ground
+      - Drifting snow: transport up to 6ft/2m
+      - Blowing snow: transport above 6ft/2m
+
+    snow_transport_occurence_24: typing.Optional[float] = pydantic.Field(None, ge=0, le=100)
 
     Profiles data
     '''''''''''''
@@ -119,10 +132,12 @@ class SnowProfile(pydantic.BaseModel):
 
     id: typing.Optional[str] = None
     comment: typing.Optional[str] = None
+    profile_comment: typing.Optional[str] = None
     profiles_comment: typing.Optional[str] = None
     time: Time = Time()
     observer: Observer = Observer()
     location: Location = Location(name='Unknown', latitude=43.600824, longitude=1.432964)
+    environment: Environment = Environment()
     application: typing.Optional[str] = 'snowprofile'
     application_version: typing.Optional[str] = None
     profile_depth: typing.Optional[float] = pydantic.Field(None, ge=0)
@@ -149,6 +164,8 @@ class SnowProfile(pydantic.BaseModel):
     hardness_profiles: typing.List[_HardnessProfile] = []
     strength_profiles: typing.List[StrengthProfile] = []
     impurity_profiles: typing.List[ImpurityProfile] = []
+    other_scalar_profiles: typing.List[ScalarProfile] = []
+    other_vectorial_profiles: typing.List[VectorialProfile] = []
     stability_tests: typing.List[_StabilityTest] = []  # To change: accept different stability tests
     additional_data: typing.Optional[AdditionalData] = None
     profiles_additional_data: typing.Optional[AdditionalData] = None

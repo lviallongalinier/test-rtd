@@ -4,9 +4,25 @@ import typing
 import datetime
 
 import pydantic
+import pandas as pd
 
-from snowprofile._constants import cloudiness_attribution
-from snowprofile._base_classes import AdditionalData, datetime_with_tz, datetime_tuple_with_tz
+from snowprofile._constants import cloudiness_attribution, QUALITY_FLAGS
+from snowprofile._base_classes import AdditionalData, datetime_with_tz, datetime_tuple_with_tz, \
+    get_dataframe_checker
+
+
+class Person(pydantic.BaseModel):
+    """
+    Class to represent a contact person
+    """
+    model_config = pydantic.ConfigDict(
+        validate_assignment=True,
+        extra='forbid')
+
+    id: typing.Optional[str] = None
+    name: str = 'Nobody'
+    comment: typing.Optional[str] = None
+    additional_data: typing.Optional[AdditionalData] = None
 
 
 class Time(pydantic.BaseModel):
@@ -60,16 +76,10 @@ class Observer(pydantic.BaseModel):
     source_comment
       Comment on the observation institution
 
-    person_id
-      Unique identifier of the observer
+    contact_persons
+      The list of contact persons (or observers)
 
-    person_name
-      Name of the observer
-
-    person_comment
-      Comment on the observer
-
-    source_additional_data and person_additional_data
+    additional_data
       Room to store additional data for CAAML compatibility (customData), do not use.
     """
     model_config = pydantic.ConfigDict(
@@ -81,15 +91,13 @@ class Observer(pydantic.BaseModel):
     source_comment: typing.Optional[str] = None
     source_additional_data: typing.Optional[AdditionalData] = None
 
-    person_id: typing.Optional[str] = None
-    person_name: typing.Optional[str] = None
-    person_comment: typing.Optional[str] = None
-    person_additional_data: typing.Optional[AdditionalData] = None
+    contact_persons: typing.List[Person] = pydantic.Field([Person(), ], min_length=1)
 
 
 class Location(pydantic.BaseModel):
     """
-    Class to store the observation location details (geographical position).
+    Class to store the observation location details
+    (geographical position and details of the observation site).
 
     The required data fields are ``name``, ``latitude`` and ``longitude``.
 
@@ -198,9 +206,9 @@ class Weather(pydantic.BaseModel):
       - SN: Snow (snow flakes)
       - SG: Snow grains
       - IC: Ice crystals
-      - PE: ??
+      - PE: Ice pellets
       - GR: Hail (Grèle)
-      - GS: Graupel (Grésil)
+      - GS: Graupel (Grésil, grains below 5mm)
 
       All these precipitation types could be preceded with '-' for light intensity or '+' for heavy intensity.
       The qualifier without +/- is moderate intensity.
@@ -213,6 +221,9 @@ class Weather(pydantic.BaseModel):
     air_temperature
       Temperature of air (°C)
 
+    air_humidity
+      Relative humidity (%)
+
     wind_speed
       Wind speed (m/s)
 
@@ -220,12 +231,15 @@ class Weather(pydantic.BaseModel):
       Wind direction (in degree, from 0 to 360)
 
     air_temperature_measurement_height
-      Height for the air temperature measurement (m)
+      Height for the air temperature measurement and humidity measurement if present (m)
 
     wind_measurement_height
       Height for the wind speed and direction measurement (m)
 
-    additonal_data:
+    comment
+      Free comment
+
+    additonal_data
       Room to store additional data for CAAML compatibility (customData), do not use.
     """
     model_config = pydantic.ConfigDict(
@@ -240,6 +254,7 @@ class Weather(pydantic.BaseModel):
         "-GR", "GR", "+GR", "-GS", "GS", "+GS"
         "UP", "Nil", "RASN", "FZRA"]] = None
     air_temperature: typing.Optional[float] = None
+    air_humidity: typing.Optional[float] = pydantic.Field(None, ge=0, le=100)
     wind_speed: typing.Optional[float] = pydantic.Field(None, ge=0)
     wind_direction: typing.Optional[int] = pydantic.Field(None, ge=0, le=360)
     air_temperature_measurement_height: typing.Optional[float] = pydantic.Field(None, gt=0)
@@ -272,7 +287,21 @@ class SpectralAlbedo(pydantic.BaseModel):
         arbitrary_types_allowed=True)
 
     comment: typing.Optional[str] = None
-    # TODO: tbd  <17-10-24, Léo Viallon-Galinier> #
+    data: typing.Annotated[pd.DataFrame,
+                           pydantic.BeforeValidator(get_dataframe_checker(_mode='Spectral',
+                                                                          albedo=dict(min=0, max=1),
+                                                                          uncertainty=dict(optional=True,
+                                                                                           nan_allowed=True),
+                                                                          quality=dict(optional=True,
+                                                                                       type='O',
+                                                                                       values=QUALITY_FLAGS + [None]),
+                                                                          )
+                                                    ),
+                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
+                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
+        description="The spectral albedo data. Pandas DataFrame with columns are "
+        "``min_wavelength`` (nm), ``max_wavelength`` (nm), ``albedo`` (between 0 and 1) "
+        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
 
 
 class SurfaceConditions(pydantic.BaseModel):
@@ -307,7 +336,7 @@ class SurfaceConditions(pydantic.BaseModel):
       - mixed
       - other
 
-    surface_other_features
+    surface_melt_rain_features
       Other surface features among:
 
       - Sun cups
@@ -366,7 +395,7 @@ class SurfaceConditions(pydantic.BaseModel):
         "Sastrugi",
         "mixed",
         "other"]] = None
-    surface_other_features: typing.Optional[typing.Literal[
+    surface_melt_rain_features: typing.Optional[typing.Literal[
         "Sun cups",
         "Penitents",
         "Melt or rain furrows",
@@ -383,8 +412,94 @@ class SurfaceConditions(pydantic.BaseModel):
     surface_albedo: typing.Optional[float] = None
     surface_albedo_comment: typing.Optional[str] = None
     spectral_albedo: typing.List[SpectralAlbedo] = []
+    spectral_albedo_comment: typing.Optional[str] = None
     penetration_ram: typing.Optional[float] = pydantic.Field(None, ge=0)
     penetration_foot: typing.Optional[float] = pydantic.Field(None, ge=0)
     penetration_ski: typing.Optional[float] = pydantic.Field(None, ge=0)
     comment: typing.Optional[str] = None
     additional_data: typing.Optional[AdditionalData] = None
+
+
+class Environment(pydantic.BaseModel):
+    """
+    Description of the site environment (independantly of the observation date).
+
+    solar_mask
+      The solar mask at the observation site. Pandas dataframe with keys azimut (degrees from north)
+      and elevation (degrees above horizon).
+
+    solar_mask_method_of_measurement
+      Measurement method for the solar mask
+
+    solar_mask_uncertainty and solar_mask_uncertainty
+      Quantitative uncertainty and qualitative quality of the solar mask measurement.
+
+    solar_mask_comment
+      Free comment on solar mask measurement
+
+    bed_surface
+      Characterization of the surface below the seasonal snowpack.
+
+    litter_thickness
+      Thickness of the litter, in case the snowpack lies on a litter (m)
+
+    ice_thickness
+      Thickness of the ice in case the snowpack is on icy surface (m)
+
+    low_vegetation_height
+      Height of the low vegetation (m)
+
+    LAI
+      Leaf area index, measured at the vegetation peak (summer, m2/m2).
+
+    forest_presence
+      Type of forest if forest site, else "Open area".
+
+    sky_view_factor
+      In case of forest site, the sky view factor (0-1)
+
+    tree_height
+      In case of forest site, the mean height of trees (m).
+
+    additonal_data:
+      Room to store additional data for CAAML compatibility (customData), do not use.
+    """
+    model_config = pydantic.ConfigDict(
+        validate_assignment=True,
+        extra='forbid',
+        arbitrary_types_allowed=True)
+
+    solar_mask: typing.Optional[typing.Annotated[
+        pd.DataFrame,
+        pydantic.BeforeValidator(get_dataframe_checker(_mode='None',
+                                                       azimut=dict(min=0, max=360),
+                                                       elevation=dict(min=-90, max=90),
+                                                       )),
+        pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
+        pydantic.json_schema.SkipJsonSchema()]] = pydantic.Field(
+            None,
+            description="The spectral albedo data. Pandas DataFrame with columns are ")
+    solar_mask_method_of_measurement: typing.Optional[typing.Literal[
+        "Theodolite", "Manual measurement", "From DTM", "From DSM", "other"]] = None
+    solar_mask_uncertainty: typing.Optional[float] = pydantic.Field(None, ge=0)
+    solar_mask_quality: typing.Optional[typing.Literal[tuple(QUALITY_FLAGS)]] = None
+    solar_mask_comment: typing.Optional[str] = None
+    bed_surface: typing.Optional[typing.Literal[
+        "Sea ice", "Glacier", "Ice cap", "Fresh water ice",
+        "Wetlands", "Grassland", "Shrubs",
+        "Rocks", "Bare ground",
+        "Needle litter", "Broadleaf litter",
+        "Artificial surface", "Mixed", "Other"]] = None
+    bed_surface_comment: typing.Optional[str] = None
+    litter_thickness: typing.Optional[float] = pydantic.Field(None, ge=0)
+    ice_thickness: typing.Optional[float] = pydantic.Field(None, ge=0)
+    low_vegetation_height: typing.Optional[float] = pydantic.Field(None, ge=0)
+    LAI: typing.Optional[float] = pydantic.Field(None, ge=0)
+    forest_presence: typing.Optional[typing.Literal[
+        "Open Area", "Broadleaf forest", "Needle forest",
+        "Mixed forest", "Shrubs", "Other"]] = pydantic.Field(
+            None,)
+    forest_presence_comment: typing.Optional[str] = None
+    sky_view_factor: typing.Optional[float] = pydantic.Field(None, ge=0, le=1)
+    tree_height: typing.Optional[float] = pydantic.Field(None, ge=0)
+    solar_mask_additional_data: typing.Optional[AdditionalData] = None
