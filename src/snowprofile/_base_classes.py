@@ -51,7 +51,7 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
     """
     Checker for pandas DataFrame to be put in a ``data`` field.
 
-    :param _mode: Point or Layer
+    :param _mode: Point or Layer or Spectral
     :param kwargs: dict:
         keys : list of columns ot be accepted
         values : dict with constraints on the content of the columns, keys are:
@@ -80,9 +80,17 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
                 raise ValueError('Should have 2 of three in {", ".join(two_of_three)}.')
             accepted_columns_min = set([])
             accepted_columns_max = set(['top_depth', 'bottom_depth', 'thickness'])
-        else:
+        elif _mode == "Spectral":
+            accepted_columns_min = set(['min_wavelength', 'max_wavelength'])
+            accepted_columns_max = accepted_columns_min
+        elif _mode == 'Point':
             accepted_columns_min = set(['depth'])
             accepted_columns_max = set(['depth'])
+        elif _mode == 'None':
+            accepted_columns_min = set()
+            accepted_columns_max = set()
+        else:
+            raise ValueError(f'Mode {_mode} unknown. The data model is ill-defined.')
 
         columns_min = []
         for k, v in kwargs.items():
@@ -101,8 +109,12 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
         # - Ensure types
         if _mode == 'Layer':
             depth_keys = ['top_depth', 'bottom_depth', 'thickness']
-        else:
+        elif _mode == "Point":
             depth_keys = ['depth']
+        elif _mode == "Spectral":
+            depth_keys = ['min_wavelength', 'max_wavelength']
+        else:
+            depth_keys = []
         for key in depth_keys:
             if key in columns:
                 value['key'] = value['key'].astype('float')
@@ -120,7 +132,7 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
                 raise ValueError(f'Nan values are not allowed in {key} field')
             if value[key].min() < 0:
                 raise ValueError(f'Negative values for {key} is not accepted.')
-            if value[key].max() > 10:
+            if _mode in ['Point', 'Layer'] and value[key].max() > 10:
                 logging.warn(f'Values above 10m for {key}. Please check your data !')
 
         # Check other data
@@ -171,6 +183,9 @@ class BaseProfile(pydantic.BaseModel):
     name: typing.Optional[str] = pydantic.Field(
         None,
         description="Name/short description of the profile")
+    related_profiles: typing.List[str] = pydantic.Field(
+        [],
+        description="id of related profiles"),
     comment: typing.Optional[str] = pydantic.Field(
         None,
         description="A comment associated to the profile")
