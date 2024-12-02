@@ -11,6 +11,27 @@ class TestSnowProfile(unittest.TestCase):
         sp = snowprofile.SnowProfile()
         assert sp.id is None
 
+    def test_example_snowprofile(self):
+        sp = snowprofile.SnowProfile()
+        sp.location.name = 'Col de Porte'
+        sp.location.latitude = 45.295043
+        sp.location.longitude = 5.76559
+        import datetime
+        sp.time.record_time = datetime.datetime(2019, 12, 25, 10, 0)
+        sp.time.report_time = datetime.datetime.now()
+
+    def test_add_profile(self):
+        sp = snowprofile.SnowProfile()
+        dp = snowprofile.profiles.DensityProfile(
+            method_of_measurement="Snow Cutter",
+            quality_of_measurement="Good",
+            probed_thickness=0.03,  # 3cm cutter thickness
+            data = {'top_depth': [120, 110, 100, 50],
+                    'thickness': [10, 10, 50, 50],
+                    'density': [75, 100, 180, 230]}
+        )
+        sp.density_profiles.append(dp)
+
 
 if __name__ == "__main__":
     unittest.main()

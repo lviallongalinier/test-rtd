@@ -25,6 +25,7 @@ Concepts to understand before using the module
    :maxdepth: 1
 
    concepts.rst
+   examples.rst
    units.rst
    uncertainties.rst
 
