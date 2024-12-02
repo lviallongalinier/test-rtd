@@ -24,7 +24,7 @@ def force_utc(value: datetime.datetime) -> datetime.datetime:
     In case the tzinfo is not provided, assume UTC.
     """
     if value.tzinfo is None:
-        return datetime.replace(tzinfo=datetime.timezone.utc)
+        return value.replace(tzinfo=datetime.timezone.utc)
     else:
         return value
 
@@ -225,7 +225,10 @@ class BaseProfile(pydantic.BaseModel):
         """
         The profile data in the form of a Pandas Dataframe
         """
-        return self._data
+        if self._data is not None:
+            return self._data.copy()
+        else:
+            return None
 
     @data.setter
     def data(self, value):
@@ -268,6 +271,7 @@ class BaseProfile2(BaseProfile):
             "See :ref:`uncertainty` for details.")
     uncertainty_of_measurement: typing.Optional[float] = pydantic.Field(
         None,
+        gt = 0,
         description="Quantitative uncertainty on ``data``: standard deviation or 68% confidence interval. "
         "Same units as ``data``. See :ref:`uncertainty` for details.")
     profile_nr: typing.Optional[int] = pydantic.Field(
