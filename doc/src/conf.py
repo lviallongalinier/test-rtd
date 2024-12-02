@@ -112,6 +112,9 @@ htmlhelp_basename = 'snowprofile'
 
 
 # -- Options for LaTeX output ------------------------------------------------
+# In case of insufficient memory, lualatex allow for automatic expansion
+# of available memory while pdflatex does not.
+# latex_engine = 'lualatex'
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
@@ -185,6 +188,13 @@ epub_exclude_files = ['search.html']
 # -- Options for autodoc extension -------------------------------------------
 
 autodoc_default_options = {
-        'show-inheritance': True,
-        }
+    'show-inheritance': True, }
 autoclass_content = 'both'
+
+# -- Options for autodoc-pydantic extension ----------------------------------
+autodoc_pydantic_model_show_config_summary = False
+autodoc_pydantic_model_settings_summary_list_order = 'bysource'
+autodoc_pydantic_model_show_validator_members = False
+autodoc_pydantic_model_signature_prefix = 'class'
+autodoc_pydantic_model_show_json = False
+# autodoc_pydantic_model_show_json_error_strategy = 'coerce'

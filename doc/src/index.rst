@@ -1,7 +1,7 @@
 snowprofile's |version| documentation
 =====================================
 
-Documentation of Snowtools |version| generated on |today|.
+Documentation of snowprofile |version| generated on |today|.
 
 Presentation of the snowprofile project
 ---------------------------------------
