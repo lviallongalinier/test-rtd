@@ -189,7 +189,7 @@ epub_exclude_files = ['search.html']
 
 autodoc_default_options = {
     'show-inheritance': True, }
-autoclass_content = 'both'
+autoclass_content = 'class'
 
 # -- Options for autodoc-pydantic extension ----------------------------------
 autodoc_pydantic_model_show_config_summary = False

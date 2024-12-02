@@ -24,6 +24,8 @@ Concepts to understand before using the module
 .. toctree::
    :maxdepth: 1
 
+   concepts.rst
+   units.rst
    uncertainties.rst
 
 Base data classes
