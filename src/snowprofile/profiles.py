@@ -8,6 +8,13 @@ from snowprofile._base_classes import BaseProfile, BaseProfile2
 from snowprofile._constants import QUALITY_FLAGS, GRAIN_SHAPES, MANUAL_WETNESS, MANUAL_HARDNESS, \
     manual_wetness_attribution, manual_hardness_attribution
 
+__all__ = ['Stratigraphy',
+           'TemperatureProfile', 'DensityProfile', 'LWCProfile',
+           'SSAProfile', 'SSAPointProfile',
+           'HardnessProfile', 'RamSondeProfile',
+           'StrengthProfile', 'ImpurityProfile',
+           'ScalarProfile', 'VectorialProfile']
+
 
 class Stratigraphy(BaseProfile):
     """

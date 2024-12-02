@@ -10,6 +10,9 @@ from snowprofile._constants import cloudiness_attribution, QUALITY_FLAGS
 from snowprofile._base_classes import AdditionalData, datetime_with_tz, datetime_tuple_with_tz, \
     get_dataframe_checker
 
+__all__ = ['Person', 'Time', 'Observer', 'Location', 'Weather', 'SurfaceConditions',
+           'Environment', 'SolarMask', 'SpectralAlbedo']
+
 
 class Person(pydantic.BaseModel):
     """
