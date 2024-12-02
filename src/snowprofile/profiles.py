@@ -3,15 +3,13 @@
 import typing
 
 import pydantic
-import pandas as pd
 
-from snowprofile._base_classes import BaseProfile, BaseProfileLayered, \
-    BaseProfileLayeredData, BaseProfilePointData, get_dataframe_checker
+from snowprofile._base_classes import BaseProfile, BaseProfile2
 from snowprofile._constants import QUALITY_FLAGS, GRAIN_SHAPES, MANUAL_WETNESS, MANUAL_HARDNESS, \
     manual_wetness_attribution, manual_hardness_attribution
 
 
-class Stratigraphy(BaseProfileLayered):
+class Stratigraphy(BaseProfile):
     """
     Stratigraphic measurement per layer:
 
@@ -28,75 +26,95 @@ class Stratigraphy(BaseProfileLayered):
         - W : Wet (3)
         - V : Very wet (4)
         - S : Soaked (5)
+
+    The data contains:
+
+    - ``top_depth``
+    - ``bottom_depth``
+    - ``thickness``
+    - ``grain_1``
+    - ``grain_2``
+    - ``grain_size``
+    - ``grain_size_max``
+    - ``hardness`` (manual hardness)
+    - ``wetness`` (manual class)
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(grain_1=dict(type='O',
-                                                                                       values=GRAIN_SHAPES + [None]),
-                                                                          grain_2=dict(type='O',
-                                                                                       values=GRAIN_SHAPES + [None]),
-                                                                          grain_size=dict(min=0,
-                                                                                          nan_allowed=True),
-                                                                          grain_size_max=dict(min=0,
-                                                                                              optional=True,
-                                                                                              nan_allowed=True),
-                                                                          hardness=dict(type='O',
-                                                                                        values=MANUAL_HARDNESS + [None],
-                                                                                        translate=manual_hardness_attribution,
-                                                                                        ),
-                                                                          wetness=dict(type='O',
-                                                                                       values=MANUAL_WETNESS + [None],
-                                                                                       translate=manual_wetness_attribution,
-                                                                                       ),
-                                                                          loc=dict(type='O',
-                                                                                   optional=True,
-                                                                                   values=['no', 'top', 'bottom', 'all']),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          comment=dict(optional=True,
-                                                                                       type='O', ),
-                                                                          additional_data=dict(optional=True,
-                                                                                               type='O', ),
-                                                                          formation_time=dict(optional=True,
-                                                                                              type='O'),
-                                                                          formation_period_begin=dict(optional=True,
-                                                                                                      type='O'),
-                                                                          formation_period_end=dict(optional=True,
-                                                                                                    type='O'),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are "
-        "``top_depth``, ``bottom_depth``, ``thickness``, "
-        "``grain_1``, ``grain_2``, ``grain_size``, ``grain_size_max``, ``hardness`` (manual hardness), "
-        "``wetness`` (manual class) "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data_config = dict(
+        grain_1=dict(type='O',
+                     values=GRAIN_SHAPES + [None]),
+        grain_2=dict(type='O',
+                     values=GRAIN_SHAPES + [None]),
+        grain_size=dict(min=0,
+                        nan_allowed=True),
+        grain_size_max=dict(min=0,
+                            optional=True,
+                            nan_allowed=True),
+        hardness=dict(type='O',
+                      values=MANUAL_HARDNESS + [None],
+                      translate=manual_hardness_attribution,
+                      ),
+        wetness=dict(type='O',
+                     values=MANUAL_WETNESS + [None],
+                     translate=manual_wetness_attribution,
+                     ),
+        loc=dict(type='O',
+                 optional=True,
+                 values=['no', 'top', 'bottom', 'all']),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+        comment=dict(optional=True,
+                     type='O', ),
+        additional_data=dict(optional=True,
+                             type='O', ),
+        formation_time=dict(optional=True,
+                            type='O'),
+        formation_period_begin=dict(optional=True,
+                                    type='O'),
+        formation_period_end=dict(optional=True,
+                                  type='O'),
+    )
 
 
-class TemperatureProfile(BaseProfilePointData):
+class TemperatureProfile(BaseProfile2):
+    """
+    Temperature profile: ensemble of points and temperature measurements
+
+    The data contains:
+
+    - ``depth``
+    - ``temperature`` (°C)
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+    """
     method_of_measurement: typing.Optional[str] = None
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(_mode='Point',
-                                                                          temperature=dict(max=0),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are ``depth``, ``temperature`` (°C) "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data_config = dict(
+        _mode='Point',
+        temperature=dict(max=0),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
 
 
-class DensityProfile(BaseProfileLayeredData):
+class DensityProfile(BaseProfile2):
     """
     Vertical profile of density (kg/m3).
+
+    The data contains:
+
+    - ``top_depth``
+    - ``bottom_depth``
+    - ``thickness``
+    - ``density`` (kg/m3)
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
     method_of_measurement: typing.Optional[typing.Literal[
         "Snow Tube", "Snow Cylinder", "Snow Cutter", "Snow wedge Cutter", "other gravimetric measurement method",
@@ -117,25 +135,28 @@ class DensityProfile(BaseProfileLayeredData):
     probed_thickness: typing.Optional[float] = pydantic.Field(
         None,
         description="Probe thickness (vertical dimension, m)")
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(density=dict(min=0, max=917),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are "
-        "``top_depth``, ``bottom_depth``, ``thickness``, ``density`` (kg/m3) "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data_config = dict(
+        density=dict(min=0, max=917),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
 
 
-class LWCProfile(BaseProfileLayeredData):
+class LWCProfile(BaseProfile2):
     """
     Vertical profile of LWC (Liquid water content, % by volume).
+
+    The data contains:
+
+    - ``top_depth``
+    - ``bottom_depth``
+    - ``thickness``
+    - ``lwc`` (% vol.)
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
     method_of_measurement: typing.Optional[typing.Literal[
         "Denoth Probe", "Snow Fork", "SnowPro Probe", "WISe", "other dielectric permittivity method",
@@ -145,23 +166,17 @@ class LWCProfile(BaseProfileLayeredData):
     probed_thickness: typing.Optional[float] = pydantic.Field(
         None,
         description="Probe thickness (vertical dimension of measurement, m)")
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(lwc=dict(min=0, max=100),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are "
-        "``top_depth``, ``bottom_depth``, ``thickness``, ``lwc`` (% vol.) "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data_config = dict(
+        lwc=dict(min=0, max=100),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
 
 
-class _SSAProfile(BaseProfile):
+class _SSAProfile(BaseProfile2):
     """
     Vertical profile of SSA (Specific surface area, m2/kg).
 
@@ -180,47 +195,52 @@ class _SSAProfile(BaseProfile):
         description="Probe thickness (vertical dimension of measurement, m)")
 
 
-class SSAProfile(BaseProfileLayeredData, _SSAProfile):
+class SSAProfile(_SSAProfile):
     """
     Vertical profile of SSA (Specific surface area, m2/kg), measured on layers.
+
+    The data contains:
+
+    - ``top_depth``
+    - ``bottom_depth``
+    - ``thickness``
+    - ``ssa`` (m2/kg)
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(ssa=dict(min=0),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are "
-        "``top_depth``, ``bottom_depth``, ``thickness``, ``ssa`` (m2/kg) "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data_config = dict(
+        ssa=dict(min=0),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
 
 
-class SSAPointProfile(BaseProfilePointData, _SSAProfile):
+class SSAPointProfile(_SSAProfile):
     """
     Vertical profile of SSA (Specific surface area, m2/kg), measured on points.
+
+    The data contains:
+
+    - ``depth``
+    - ``ssa`` (m2/kg)
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(_mode='Point',
-                                                                          ssa=dict(min=0),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are ``depth``, ``ssa`` (m2/kg) "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data_config = dict(
+        _mode='Point',
+        ssa=dict(min=0),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
 
 
-class _HardnessProfile(BaseProfileLayeredData):
+class _HardnessProfile(BaseProfile2):
     """
     Vertical profile of hardness (N).
 
@@ -238,51 +258,83 @@ class _HardnessProfile(BaseProfileLayeredData):
 class HardnessProfile(_HardnessProfile):
     """
     Vertical profile of hardness (N).
+
+    The data contains:
+
+    - ``top_depth``
+    - ``bottom_depth``
+    - ``thickness``
+    - ``hardness`` (N)
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(hardness=dict(min=0),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are "
-        "``top_depth``, ``bottom_depth``, ``thickness``, ``hardness`` (N) "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data_config = dict(
+        hardness=dict(min=0),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
 
 
 class RamSondeProfile(_HardnessProfile):
     """
     Special type of Hardness profile for RamSonde measurements
+
+    The data contains:
+
+    - ``top_depth``
+    - ``bottom_depth``
+    - ``thickness``
+    - ``hardness`` (N)
+    - ``weight_hammer``
+    - ``weight_tube``
+    - ``n_drops``
+    - ``drop_height``
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(hardness=dict(min=0, optional=True),
-                                                                          weight_hammer=dict(min=0),
-                                                                          weight_tube=dict(min=0),
-                                                                          n_drops=dict(type=int, min=0),
-                                                                          drop_height=dict(min=0),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are "
-        "``top_depth``, ``bottom_depth``, ``thickness``, ``hardness`` (N), "
-        "``weight_hammer``, ``weight_tube``, ``n_drops``, ``drop_height`` "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data_config = dict(
+        hardness=dict(min=0, optional=True),
+        weight_hammer=dict(min=0),
+        weight_tube=dict(min=0),
+        n_drops=dict(type=int, min=0),
+        drop_height=dict(min=0),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
     # TODO: Computation of hardness from other data ?  <06-11-24, Léo Viallon-Galinier> #
 
 
-class StrengthProfile(BaseProfileLayeredData):
+class StrengthProfile(BaseProfile2):
     """
     Vertical profile of strength (N).
+
+    The data contains:
+
+
+    - ``top_depth``
+    - ``bottom_depth``
+    - ``thickness``
+    - ``strength`` (N)
+    - ``fracture_character`` (optional)
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+
+    Fracture character are one of the following possibilities:
+
+    - SP: Sudden planar
+    - SC: Sudden collapse
+    - SDN: Sudden (both)
+    - RP: Resistant planar
+    - PC: Progressive compression
+    - RES: Resistant (both)
+    - BRK or B: Break
+    - X: Other/Unknown
     """
     method_of_measurement: typing.Optional[typing.Literal[
         "Shear Frame",
@@ -292,42 +344,36 @@ class StrengthProfile(BaseProfileLayeredData):
     probed_area: typing.Optional[float] = pydantic.Field(
         None,
         description="Probed area (m2)")
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(strength=dict(min=0),
-                                                                          fracture_character=dict(optional=True,
-                                                                                                  nan_allowed=True,
-                                                                                                  values=["SDN", "SP",
-                                                                                                          "SC", "RES",
-                                                                                                          "PC", "RP",
-                                                                                                          "BRK", "B",
-                                                                                                          "X", None],
-                                                                                                  type='O'),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are "
-        "``top_depth``, ``bottom_depth``, ``thickness``, ``strength`` (N), ``fracture_character`` (optional) "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).\n\n"
-        "Fracture character are one of the following possibilities:\n\n"
-        "- SP: Sudden planar\n"
-        "- SC: Sudden collapse\n"
-        "- SDN: Sudden (both)\n"
-        "- RP: Resistant planar\n"
-        "- PC: Progressive compression\n"
-        "- RES: Resistant (both)\n"
-        "- BRK or B: Break\n"
-        "- X: Other/Unknown\n")
+    _data_config = dict(
+        strength=dict(min=0),
+        fracture_character=dict(optional=True,
+                                nan_allowed=True,
+                                values=["SDN", "SP",
+                                        "SC", "RES",
+                                        "PC", "RP",
+                                        "BRK", "B",
+                                        "X", None],
+                                type='O'),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
 
 
-class ImpurityProfile(BaseProfileLayeredData):
+class ImpurityProfile(BaseProfile2):
     """
     Vertical profile of impurities (mass or volume fraction).
+
+    The data contains:
+
+    - ``top_depth``
+    - ``bottom_depth``
+    - ``thickness``
+    - ``mass_fraction`` or ``volume_fraction``
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
     method_of_measurement: typing.Optional[typing.Literal[
         "other"]] = pydantic.Field(
@@ -352,50 +398,47 @@ class ImpurityProfile(BaseProfileLayeredData):
     probed_thickness: typing.Optional[float] = pydantic.Field(
         None,
         description="Probe thickness (vertical dimension, m)")
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(mass_fraction=dict(min=0, max=100,
-                                                                                             optional=True,
-                                                                                             nan_allowed=True),
-                                                                          volume_fraction=dict(min=0, max=100,
-                                                                                               optional=True,
-                                                                                               nan_allowed=True),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are "
-        "``top_depth``, ``bottom_depth``, ``thickness``, ``mass_fraction`` or ``volume_fraction`` "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data_config = dict(
+        mass_fraction=dict(min=0, max=100,
+                           optional=True,
+                           nan_allowed=True),
+        volume_fraction=dict(min=0, max=100,
+                             optional=True,
+                             nan_allowed=True),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
 
 
-class ScalarProfile(BaseProfileLayeredData):
+class ScalarProfile(BaseProfile2):
     """
     Other profile of scalar data (not covered by other Profile class).
+
+    The data contains:
+
+    - ``top_depth``
+    - ``bottom_depth``
+    - ``thickness``
+    - ``data``
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
     method_of_measurement: typing.Optional[str] = None
     unit: str = pydantic.Field(
         description="Unit (SI unit please)")
     parametrer: str = pydantic.Field(
         description="Measured parameter")
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(data=dict(),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The profile data. Pandas DataFrame with columns are "
-        "``top_depth``, ``bottom_depth``, ``thickness``, ``data`` "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data_config = dict(
+        data=dict(),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
 
 
 class VectorialProfile(ScalarProfile):

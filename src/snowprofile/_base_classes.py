@@ -11,7 +11,6 @@ import logging
 
 import pydantic
 import pydantic.json_schema
-import numpy as np
 import pandas as pd
 
 
@@ -68,7 +67,7 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
         if isinstance(value, dict):
             value = pd.DataFrame(value)
         elif isinstance(value, pd.DataFrame):
-            pass
+            value = value.copy()
         else:
             raise ValueError('data key should be a pandas DataFrame or a python dictionnary.')
 
@@ -170,7 +169,9 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
 
 class BaseProfile(pydantic.BaseModel):
     """
-    Base class for all profiles (stratigraphy, density, etc.)
+    Base class used for all profiles (stratigraphy, density, etc.)
+
+    See the child class BaseProfile2 for all profiles except stratigraphy.
     """
     model_config = pydantic.ConfigDict(
         validate_assignment=True,
@@ -205,11 +206,50 @@ class BaseProfile(pydantic.BaseModel):
     additional_data: typing.Optional[AdditionalData] = pydantic.Field(
         None,
         description="Room to store additional data for CAAML compatibility (customData), do not use.")
+    _data = typing.Optional[pd.DataFrame]
+
+    def __init__(self, data=None, data_dict=None, **kwargs):
+        super().__init__(**kwargs)
+        checker = get_dataframe_checker(**self._data_config)
+        if data is not None:
+            self._data = checker(data)
+        elif data_dict is not None:
+            self._data = checker(data_dict)
+        else:
+            raise ValueError('data key is required')
+
+    @property
+    def data(self) -> pd.DataFrame:
+        """
+        The profile data in the form of a Pandas Dataframe
+        """
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        checker = get_dataframe_checker(**self._data_config)
+        self._data = checker(value)
+
+    @data.deleter
+    def data(self):
+        self._data = None
+
+    @pydantic.computed_field(alias='data', repr=True)
+    @property
+    def data_dict(self) -> dict:
+        """
+        The data in the form of a dictionnary.
+
+        Useful for instance for JSON serialization
+        """
+        if self._data is None:
+            return None
+        return self._data.to_dict('list')
 
 
-class BaseProfileFields:
+class BaseProfile2(BaseProfile):
     """
-    Base fields for all profiles except stratigraphy
+    Base class for all profiles except stratigraphy
     """
     quality_of_measurement: typing.Optional[typing.Literal[
         'Good', 'Uncertain', 'Low', 'Bad']] = pydantic.Field(
@@ -222,43 +262,12 @@ class BaseProfileFields:
             "(doubts in the measurement or data processing procedure). To be specified in the quality comment.\n"
             "- Low quality: data whose quality is undoubtedly below the standard quality of the method due to "
             "measurements or data processing procedure. To be specified in the quality comment.\n"
-            "- Bad: undoubtedly erroneous data")
+            "- Bad: undoubtedly erroneous data\n\n"
+            "See :ref:`uncertainty` for details.")
     uncertainty_of_measurement: typing.Optional[float] = pydantic.Field(
         None,
         description="Quantitative uncertainty on ``data``: standard deviation or 68% confidence interval. "
-        "Same units as ``data``.")
+        "Same units as ``data``. See :ref:`uncertainty` for details.")
     profile_nr: typing.Optional[int] = pydantic.Field(
         None, ge=0,
         description="Profile number (the lower is the higher priority)")
-
-
-class BaseProfileLayered(BaseProfile):
-    """
-    Base class for layered profiles, including stratigraphy.
-    """
-    @property
-    def bottom_depth(self) -> np.ndarray:
-        """
-        Get the bottom depth (numpy array, zero at ground)
-        """
-        return self.data['top_depth'].values - self.data['thicknesses'].values
-
-
-class BaseProfileLayeredData(BaseProfileLayered, BaseProfileFields):
-    """
-    Base class for profiles with layer dimension (all except temperature)
-
-    Data contain columns top_depth, thicknesses, data, comments, additonal_data.
-    For depth, zero is at bottom of the snowpack.
-    """
-
-    # TODO: Implement a method to insert a layer with top_depth, thicknesses, comments  <18-10-24, LVG> #
-
-
-class BaseProfilePointData(BaseProfile, BaseProfileFields):
-    """
-    Base class for profiles measuring one data at a time (all except temeprature and stratigraphy)
-
-    Data contain columns depth, data, comments, additonal_data.
-    For depth, zero is at bottom of the snowpack.
-    """

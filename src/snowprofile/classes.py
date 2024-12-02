@@ -280,6 +280,14 @@ class Weather(pydantic.BaseModel):
 class SpectralAlbedo(pydantic.BaseModel):
     """
     Class to store spectral albedo
+
+    The data contains:
+
+    - ``min_wavelength`` (nm)
+    - ``max_wavelength`` (nm)
+    - ``albedo`` (between 0 and 1)
+
+    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
     model_config = pydantic.ConfigDict(
         validate_assignment=True,
@@ -287,21 +295,114 @@ class SpectralAlbedo(pydantic.BaseModel):
         arbitrary_types_allowed=True)
 
     comment: typing.Optional[str] = None
-    data: typing.Annotated[pd.DataFrame,
-                           pydantic.BeforeValidator(get_dataframe_checker(_mode='Spectral',
-                                                                          albedo=dict(min=0, max=1),
-                                                                          uncertainty=dict(optional=True,
-                                                                                           nan_allowed=True),
-                                                                          quality=dict(optional=True,
-                                                                                       type='O',
-                                                                                       values=QUALITY_FLAGS + [None]),
-                                                                          )
-                                                    ),
-                           pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-                           pydantic.json_schema.SkipJsonSchema()] = pydantic.Field(
-        description="The spectral albedo data. Pandas DataFrame with columns are "
-        "``min_wavelength`` (nm), ``max_wavelength`` (nm), ``albedo`` (between 0 and 1) "
-        "and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`)")
+    _data = typing.Optional[pd.DataFrame]
+    _data_config = dict(
+        _mode='Spectral',
+        albedo=dict(min=0, max=1),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
+
+    def __init__(self, data=None, data_dict=None, **kwargs):
+        super().__init__(**kwargs)
+        checker = get_dataframe_checker(**self._data_config)
+        if data is not None:
+            self._data = checker(data)
+        elif data_dict is not None:
+            self._data = checker(data_dict)
+        else:
+            raise ValueError('data key is required')
+
+    @property
+    def data(self):
+        """
+        The profile data
+        """
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        checker = get_dataframe_checker(**self._data_config)
+        self._data = checker(value)
+
+    @data.deleter
+    def data(self):
+        self._data = None
+
+    @pydantic.computed_field(alias='data', repr=True)
+    @property
+    def data_dict(self) -> dict:
+        """
+        The data in the ofrm of a dictionnary.
+
+        Useful for instance for JSON serialization
+        """
+        if self._data is None:
+            return None
+        return self._data.to_dict('list')
+
+
+class SolarMask(pydantic.BaseModel):
+    """
+    Class to store solar mask
+
+    The data contains:
+
+    - ``azimut`` (degrees from north)
+    - ``elevation`` (in degrees from horizontal)
+    """
+    model_config = pydantic.ConfigDict(
+        validate_assignment=True,
+        extra='forbid',
+        arbitrary_types_allowed=True)
+
+    _data = typing.Optional[pd.DataFrame]
+    _data_config = dict(
+        _mode='None',
+        azimut=dict(min=0, max=360),
+        elevation=dict(min=-90, max=90),
+    )
+
+    def __init__(self, data=None, data_dict=None, **kwargs):
+        super().__init__(**kwargs)
+        checker = get_dataframe_checker(**self._data_config)
+        if data is not None:
+            self._data = checker(data)
+        elif data_dict is not None:
+            self._data = checker(data_dict)
+        else:
+            raise ValueError('data key is required')
+
+    @property
+    def data(self):
+        """
+        The profile data
+        """
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        checker = get_dataframe_checker(**self._data_config)
+        self._data = checker(value)
+
+    @data.deleter
+    def data(self):
+        self._data = None
+
+    @pydantic.computed_field(alias='data', repr=True)
+    @property
+    def data_dict(self) -> dict:
+        """
+        The data in the form of a dictionnary.
+
+        Useful for instance for JSON serialization
+        """
+        if self._data is None:
+            return None
+        return self._data.to_dict('list')
 
 
 class SurfaceConditions(pydantic.BaseModel):
@@ -469,16 +570,9 @@ class Environment(pydantic.BaseModel):
         extra='forbid',
         arbitrary_types_allowed=True)
 
-    solar_mask: typing.Optional[typing.Annotated[
-        pd.DataFrame,
-        pydantic.BeforeValidator(get_dataframe_checker(_mode='None',
-                                                       azimut=dict(min=0, max=360),
-                                                       elevation=dict(min=-90, max=90),
-                                                       )),
-        pydantic.PlainSerializer(lambda x: x.to_dict('list'), return_type=dict, ),
-        pydantic.json_schema.SkipJsonSchema()]] = pydantic.Field(
-            None,
-            description="The spectral albedo data. Pandas DataFrame with columns are ")
+    solar_mask: typing.Optional[SolarMask] = pydantic.Field(
+        None,
+        description="The spectral albedo data.")
     solar_mask_method_of_measurement: typing.Optional[typing.Literal[
         "Theodolite", "Manual measurement", "From DTM", "From DSM", "other"]] = None
     solar_mask_uncertainty: typing.Optional[float] = pydantic.Field(None, ge=0)
