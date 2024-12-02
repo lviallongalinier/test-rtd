@@ -62,7 +62,7 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
             - nan_allowed: for numeric types, allow nan or not (default is False)
             - values: the list of accepted values
     """
-    def check_dataframe(value, cls):
+    def check_dataframe(value, cls=None):
         # Check type -> ensure we have a pandas DataFrame
         if isinstance(value, dict):
             value = pd.DataFrame(value)
@@ -76,7 +76,7 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
         if _mode == 'Layer':
             two_of_three = set(['top_depth', 'bottom_depth', 'thickness'])
             if len(columns.intersection(two_of_three)) != 2:
-                raise ValueError('Should have 2 of three in {", ".join(two_of_three)}.')
+                raise ValueError(f'Should have 2 of three in {", ".join(two_of_three)}.')
             accepted_columns_min = set([])
             accepted_columns_max = set(['top_depth', 'bottom_depth', 'thickness'])
         elif _mode == "Spectral":
@@ -96,7 +96,7 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
             if 'optional' in v and v['optional']:
                 continue
             else:
-                columns.min.append(k)
+                columns_min.append(k)
         columns_min = set(columns_min) | accepted_columns_min
         columns_max = set(kwargs.keys()) | accepted_columns_max
         if not columns.issuperset(columns_min):
@@ -116,7 +116,7 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
             depth_keys = []
         for key in depth_keys:
             if key in columns:
-                value['key'] = value['key'].astype('float')
+                value[key] = value[key].astype('float')
         # - Completion of columns to ensure that top_depth, bottom_depth an dthickess are defined and coherent
         if _mode == 'Layer':
             if 'top_depth' not in columns:
@@ -136,6 +136,8 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
 
         # Check other data
         for key, d in kwargs.items():
+            if key not in value.columns:
+                continue
             # Replace values if needed
             if 'translate' in d:
                 value[key] = value[key].replace(d['translate'])
