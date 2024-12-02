@@ -75,7 +75,10 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
         columns = set(value.columns)
         if _mode == 'Layer':
             two_of_three = set(['top_depth', 'bottom_depth', 'thickness'])
-            if len(columns.intersection(two_of_three)) != 2:
+            if len(columns.intersection(two_of_three)) == 3:
+                if not (value['top_depth'] - value['thickness'] == value['bottom_depth']).all():
+                    raise ValueError('Provided top_depth, bottom_depth and thickness that are inconsistent.')
+            elif len(columns.intersection(two_of_three)) != 2:
                 raise ValueError(f'Should have 2 of three in {", ".join(two_of_three)}.')
             accepted_columns_min = set([])
             accepted_columns_max = set(['top_depth', 'bottom_depth', 'thickness'])
