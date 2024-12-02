@@ -436,7 +436,7 @@ class ScalarProfile(BaseProfile2):
     method_of_measurement: typing.Optional[str] = None
     unit: str = pydantic.Field(
         description="Unit (SI unit please)")
-    parametrer: str = pydantic.Field(
+    parameter: str = pydantic.Field(
         description="Measured parameter")
     _data_config = dict(
         data=dict(),
