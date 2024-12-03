@@ -43,3 +43,15 @@ The created profile does not have any name and the spatial localization is more 
                'density': [75, 100, 180, 230]}
    )
    sp.density_profiles.append(dp)
+
+NB : when changing data, you have to re-assign the dataframe to the data key of the profile otherwise the changes are not taken into account:
+
+
+.. code-block:: python
+
+   df = dp.data
+   # Let's put a little bit more of snow on ground!
+   df['thickness'] *= 2
+   df['top_depth'] *= 2
+   dp.data = df[['thickness', 'top_depth', 'density']]
+
