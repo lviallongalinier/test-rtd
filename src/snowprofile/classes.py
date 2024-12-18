@@ -505,7 +505,11 @@ class SurfaceConditions(pydantic.BaseModel):
         "Melt or rain furrows",
         "other"]] = None
     surface_features_amplitude: typing.Optional[float] = pydantic.Field(None, gt=0)
+    surface_features_amplitude_min: typing.Optional[float] = pydantic.Field(None, gt=0)
+    surface_features_amplitude_max: typing.Optional[float] = pydantic.Field(None, gt=0)
     surface_features_wavelength: typing.Optional[float] = pydantic.Field(None, gt=0)
+    surface_features_wavelength_min: typing.Optional[float] = pydantic.Field(None, gt=0)
+    surface_features_wavelength_max: typing.Optional[float] = pydantic.Field(None, gt=0)
     surface_features_aspect: typing.Optional[int] = pydantic.Field(None, ge=0, le=360)
     lap_presence: typing.Optional[typing.Literal[
         "No LAP", "Black Carbon", "Dust",
