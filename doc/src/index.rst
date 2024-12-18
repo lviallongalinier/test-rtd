@@ -40,6 +40,14 @@ Base data classes
    profiles.rst
    stability_tests.rst
 
+Documentation for developers
+----------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   develop.rst
+
 
 Indices and tables
 ------------------
