@@ -46,10 +46,10 @@ class Time(pydantic.BaseModel):
         (None, None),
         description="Time period of the observation "
         "(tuple of two python datetime object representing the begin time and end time).")
-    report_time: datetime_with_tz = pydantic.Field(
+    report_time: typing.Optional[datetime_with_tz] = pydantic.Field(
         None,
         description="Reporting time of the observation (python datetime object).")
-    last_edition_time: datetime_with_tz = pydantic.Field(
+    last_edition_time: typing.Optional[datetime_with_tz] = pydantic.Field(
         None,
         description="Last edition time of this observation data (python datetime object).")
     comment: typing.Optional[str] = pydantic.Field(

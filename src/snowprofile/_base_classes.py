@@ -23,6 +23,8 @@ def force_utc(value: datetime.datetime) -> datetime.datetime:
     Force the tzinfo to be defined in a python datetime object.
     In case the tzinfo is not provided, assume UTC.
     """
+    if value is None:
+        return None
     if value.tzinfo is None:
         return value.replace(tzinfo=datetime.timezone.utc)
     else:
@@ -36,9 +38,12 @@ def force_utc_tuple(value: tuple) -> tuple:
     """
     Same as force_utc but for all elements of a tuple.
     """
+    if value is None:
+        return (None, None)
+    r = []
     for i in range(len(value)):
-        value[i] = force_utc(value[i])
-    return value
+        r.append(force_utc(value[i]))
+    return tuple(value)
 
 
 datetime_tuple_with_tz = typing.Annotated[typing.Tuple[typing.Optional[datetime.datetime],
@@ -191,7 +196,7 @@ class BaseProfile(pydantic.BaseModel):
         description="Name/short description of the profile")
     related_profiles: typing.List[str] = pydantic.Field(
         [],
-        description="id of related profiles"),
+        description="id of related profiles")
     comment: typing.Optional[str] = pydantic.Field(
         None,
         description="A comment associated to the profile")
@@ -244,7 +249,7 @@ class BaseProfile(pydantic.BaseModel):
 
     @pydantic.computed_field(alias='data', repr=True)
     @property
-    def data_dict(self) -> dict:
+    def data_dict(self) -> typing.Optional[dict]:
         """
         The data in the form of a dictionnary.
 
@@ -253,6 +258,14 @@ class BaseProfile(pydantic.BaseModel):
         if self._data is None:
             return None
         return self._data.to_dict('list')
+
+    @data_dict.setter
+    def data_dict(self, value):
+        self.data = value
+
+    @data_dict.deleter
+    def data_dict(self):
+        del self.data
 
 
 class BaseProfile2(BaseProfile):
