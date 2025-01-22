@@ -18,20 +18,33 @@ class AdditionalData(pydantic.BaseModel):
     data: typing.Any
 
 
-def force_utc(value: datetime.datetime) -> datetime.datetime:
+def force_utc(value: str | datetime.datetime) -> datetime.datetime:
     """
     Force the tzinfo to be defined in a python datetime object.
     In case the tzinfo is not provided, assume UTC.
     """
     if value is None:
         return None
+    if isinstance(value, str):
+        value = datetime.datetime.fromisoformat(value)
     if value.tzinfo is None:
         return value.replace(tzinfo=datetime.timezone.utc)
+    return value
+
+
+def serialize_datetime(value: typing.Optional[datetime.datetime]) -> typing.Optional[str]:
+    """
+    Serialize datetime objects to string (with iso format).
+    """
+    if value is None:
+        return None
     else:
-        return value
+        return value.isoformat(sep=' ', timespec='seconds')
 
 
-datetime_with_tz = typing.Annotated[datetime.datetime, pydantic.BeforeValidator(force_utc)]
+datetime_with_tz = typing.Annotated[datetime.datetime,
+                                    pydantic.BeforeValidator(force_utc),
+                                    pydantic.PlainSerializer(serialize_datetime, return_type=typing.Optional[str])]
 
 
 def force_utc_tuple(value: tuple) -> tuple:
@@ -46,9 +59,23 @@ def force_utc_tuple(value: tuple) -> tuple:
     return tuple(value)
 
 
+def serialize_datetime_tuple(value) -> typing.Optional[typing.List[typing.Optional[str]]]:
+    """
+    """
+    if value is None:
+        return None
+    r = []
+    for i in range(len(value)):
+        r.append(serialize_datetime(value[i]))
+    return r
+
+
 datetime_tuple_with_tz = typing.Annotated[typing.Tuple[typing.Optional[datetime.datetime],
                                                        typing.Optional[datetime.datetime]],
-                                          pydantic.BeforeValidator(force_utc_tuple)]
+                                          pydantic.BeforeValidator(force_utc_tuple),
+                                          pydantic.PlainSerializer(
+                                              serialize_datetime_tuple,
+                                              return_type=typing.Optional[typing.List[typing.Optional[str]]])]
 
 
 def get_dataframe_checker(_mode='Layer', **kwargs):
@@ -140,7 +167,7 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
             if value[key].min() < 0:
                 raise ValueError(f'Negative values for {key} is not accepted.')
             if _mode in ['Point', 'Layer'] and value[key].max() > 10:
-                logging.warn(f'Values above 10m for {key}. Please check your data !')
+                logging.warning(f'Values above 10m for {key}. Please check your data !')
 
         # Check other data
         for key, d in kwargs.items():
@@ -154,7 +181,7 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
             value[key] = value[key].astype(_type)
             # Check min/max for numeric types
             if pd.isna(value[key].min()):
-                logging.warn(f'Data from key {key} is empty !')
+                logging.warning(f'Data from key {key} is empty !')
             if 'min' in d:
                 _min = d['min']
                 if not pd.isna(value[key].min()) and value[key].min() < _min:
@@ -177,56 +204,14 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
     return check_dataframe
 
 
-class BaseProfile(pydantic.BaseModel):
+class BaseData:
     """
-    Base class used for all profiles (stratigraphy, density, etc.)
+    Base for classes with a data attribute of pandas DataFrame type.
 
-    See the child class BaseProfile2 for all profiles except stratigraphy.
+    Manage the necessary functions to read, edit and dump/reload
+    the data stored in the pandas DataFrame.
     """
-    model_config = pydantic.ConfigDict(
-        validate_assignment=True,
-        extra='forbid',
-        arbitrary_types_allowed=True)
-
-    id: typing.Optional[str] = pydantic.Field(
-        None,
-        description="Unique identifier of the profile [A-Za-z0-9-]")
-    name: typing.Optional[str] = pydantic.Field(
-        None,
-        description="Name/short description of the profile")
-    related_profiles: typing.List[str] = pydantic.Field(
-        [],
-        description="id of related profiles")
-    comment: typing.Optional[str] = pydantic.Field(
-        None,
-        description="A comment associated to the profile")
-    record_time: typing.Optional[datetime_with_tz] = pydantic.Field(
-        None,
-        description="The time at which the profile observation have been done (python datetime object).")
-    record_period: datetime_tuple_with_tz = pydantic.Field(
-        (None, None),
-        description="Time period of the profile observation "
-        "(tuple of two python datetime object representing the begin time and end time).")
-    profile_depth: typing.Optional[float] = pydantic.Field(
-        None, ge=0,
-        description="Profile depth if different from the SnowProfile one (m)")
-    profile_swe: typing.Optional[float] = pydantic.Field(
-        None, ge=0,
-        description="Profile SWE if specific measurement at the precise location of the profile (mm or kg/m2)")
-    additional_data: typing.Optional[AdditionalData] = pydantic.Field(
-        None,
-        description="Room to store additional data for CAAML compatibility (customData), do not use.")
     _data = typing.Optional[pd.DataFrame]
-
-    def __init__(self, data=None, data_dict=None, **kwargs):
-        super().__init__(**kwargs)
-        checker = get_dataframe_checker(**self._data_config)
-        if data is not None:
-            self._data = checker(data)
-        elif data_dict is not None:
-            self._data = checker(data_dict)
-        else:
-            raise ValueError('data key is required')
 
     @property
     def data(self) -> pd.DataFrame:
@@ -266,6 +251,57 @@ class BaseProfile(pydantic.BaseModel):
     @data_dict.deleter
     def data_dict(self):
         del self.data
+
+
+class BaseProfile(pydantic.BaseModel, BaseData):
+    """
+    Base class used for all profiles (stratigraphy, density, etc.)
+
+    See the child class BaseProfile2 for all profiles except stratigraphy.
+    """
+    model_config = pydantic.ConfigDict(
+        validate_assignment=True,
+        extra='forbid',
+        arbitrary_types_allowed=True)
+
+    id: typing.Optional[str] = pydantic.Field(
+        None,
+        description="Unique identifier of the profile [A-Za-z0-9-]")
+    name: typing.Optional[str] = pydantic.Field(
+        None,
+        description="Name/short description of the profile")
+    related_profiles: typing.List[str] = pydantic.Field(
+        [],
+        description="id of related profiles")
+    comment: typing.Optional[str] = pydantic.Field(
+        None,
+        description="A comment associated to the profile")
+    record_time: typing.Optional[datetime_with_tz] = pydantic.Field(
+        None,
+        description="The time at which the profile observation have been done (python datetime object).")
+    record_period: datetime_tuple_with_tz = pydantic.Field(
+        (None, None),
+        description="Time period of the profile observation "
+        "(tuple of two python datetime object representing the begin time and end time).")
+    profile_depth: typing.Optional[float] = pydantic.Field(
+        None, ge=0,
+        description="Profile depth if different from the SnowProfile one (m)")
+    profile_swe: typing.Optional[float] = pydantic.Field(
+        None, ge=0,
+        description="Profile SWE if specific measurement at the precise location of the profile (mm or kg/m2)")
+    additional_data: typing.Optional[AdditionalData] = pydantic.Field(
+        None,
+        description="Room to store additional data for CAAML compatibility (customData), do not use.")
+
+    def __init__(self, data=None, data_dict=None, **kwargs):
+        super().__init__(**kwargs)
+        checker = get_dataframe_checker(**self._data_config)
+        if data is not None:
+            self._data = checker(data)
+        elif data_dict is not None:
+            self._data = checker(data_dict)
+        else:
+            raise ValueError('data key is required')
 
 
 class BaseProfile2(BaseProfile):

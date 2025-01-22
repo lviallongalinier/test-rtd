@@ -392,7 +392,7 @@ class ImpurityProfile(BaseProfile2):
     unit: typing.Literal[
         "mass fraction", "volume fraction"] = pydantic.Field(
             "mass fraction",
-            descritpion="Unit for measurement mass or volume fraction")
+            description="Unit for measurement mass or volume fraction")
     probed_volume: typing.Optional[float] = pydantic.Field(
         None,
         description="Probe volume (m3)")

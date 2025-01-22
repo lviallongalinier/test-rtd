@@ -4,11 +4,10 @@ import typing
 import datetime
 
 import pydantic
-import pandas as pd
 
 from snowprofile._constants import cloudiness_attribution, QUALITY_FLAGS
-from snowprofile._base_classes import AdditionalData, datetime_with_tz, datetime_tuple_with_tz, \
-    get_dataframe_checker
+from snowprofile._base_classes import AdditionalData, BaseData, \
+    datetime_with_tz, datetime_tuple_with_tz, get_dataframe_checker
 
 __all__ = ['Person', 'Time', 'Observer', 'Location', 'Weather', 'SurfaceConditions',
            'Environment', 'SolarMask', 'SpectralAlbedo']
@@ -120,7 +119,7 @@ class Location(pydantic.BaseModel):
       Longitude (degrees East)
 
     comment
-      A comment for the point descritpion (str)
+      A comment for the point description (str)
 
     elevation
       Point elevation (meters above sea level)
@@ -280,7 +279,7 @@ class Weather(pydantic.BaseModel):
         return None
 
 
-class SpectralAlbedo(pydantic.BaseModel):
+class SpectralAlbedo(pydantic.BaseModel, BaseData):
     """
     Class to store spectral albedo
 
@@ -298,7 +297,6 @@ class SpectralAlbedo(pydantic.BaseModel):
         arbitrary_types_allowed=True)
 
     comment: typing.Optional[str] = None
-    _data = typing.Optional[pd.DataFrame]
     _data_config = dict(
         _mode='Spectral',
         albedo=dict(min=0, max=1),
@@ -319,34 +317,6 @@ class SpectralAlbedo(pydantic.BaseModel):
         else:
             raise ValueError('data key is required')
 
-    @property
-    def data(self):
-        """
-        The profile data
-        """
-        return self._data
-
-    @data.setter
-    def data(self, value):
-        checker = get_dataframe_checker(**self._data_config)
-        self._data = checker(value)
-
-    @data.deleter
-    def data(self):
-        self._data = None
-
-    @pydantic.computed_field(alias='data', repr=True)
-    @property
-    def data_dict(self) -> dict:
-        """
-        The data in the ofrm of a dictionnary.
-
-        Useful for instance for JSON serialization
-        """
-        if self._data is None:
-            return None
-        return self._data.to_dict('list')
-
 
 class SolarMask(pydantic.BaseModel):
     """
@@ -362,7 +332,6 @@ class SolarMask(pydantic.BaseModel):
         extra='forbid',
         arbitrary_types_allowed=True)
 
-    _data = typing.Optional[pd.DataFrame]
     _data_config = dict(
         _mode='None',
         azimut=dict(min=0, max=360),
@@ -378,34 +347,6 @@ class SolarMask(pydantic.BaseModel):
             self._data = checker(data_dict)
         else:
             raise ValueError('data key is required')
-
-    @property
-    def data(self):
-        """
-        The profile data
-        """
-        return self._data
-
-    @data.setter
-    def data(self, value):
-        checker = get_dataframe_checker(**self._data_config)
-        self._data = checker(value)
-
-    @data.deleter
-    def data(self):
-        self._data = None
-
-    @pydantic.computed_field(alias='data', repr=True)
-    @property
-    def data_dict(self) -> dict:
-        """
-        The data in the form of a dictionnary.
-
-        Useful for instance for JSON serialization
-        """
-        if self._data is None:
-            return None
-        return self._data.to_dict('list')
 
 
 class SurfaceConditions(pydantic.BaseModel):
