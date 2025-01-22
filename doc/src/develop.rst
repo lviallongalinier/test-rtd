@@ -10,7 +10,7 @@ Any contributor must:
 
 * use the **git** versioning tool 
 * work in a branch, deriving from either the latest ``master`` or ``dev`` branches.
-* Test before commit (see :ref:`sec-test`)
+* Test before commit (see below)
 * Ensure new development have a corresponding test
 * Ensure new development have a corresponding documentation
 * Ensure you followed guidelines below

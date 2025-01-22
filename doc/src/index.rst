@@ -40,6 +40,14 @@ Base data classes
    profiles.rst
    stability_tests.rst
 
+I/O reading and writting data
+-----------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   io.rst
+
 Documentation for developers
 ----------------------------
 

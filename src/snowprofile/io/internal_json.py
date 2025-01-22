@@ -50,7 +50,7 @@ def write_internal_json(snowprofile, filename, **kwargs):
     :param snowprofile: The SnowProfile object
     :type snowprofile: `:py:class:snowprofile.SnowProfile`
     :param filename: The filename/filepath to write
-    (warning: any existing file with the same name will be overwritten with no confirmation).
+                     (warning: any existing file with the same name will be overwritten with no confirmation).
     :type filename: str or path-like object
     :param kwargs: Arguments to be passed to the json.dump function (standard library)
     :returns: The written filename
