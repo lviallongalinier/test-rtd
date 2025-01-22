@@ -329,3 +329,92 @@ class BaseProfile2(BaseProfile):
     profile_nr: typing.Optional[int] = pydantic.Field(
         None, ge=0,
         description="Profile number (the lower is the higher priority)")
+
+
+class BaseMergeable:
+    """
+    Implement a merge method for the pydantic data class.
+    """
+    def merge(self, other) -> None:
+        """
+        Function to merge with an object of the same type.
+
+        Raise warnings when inconsistent data are encountered.
+
+        Does not create a copy of the object.
+
+        :param other: Other object of the same type
+        :returns: None (merge done in-place)
+        """
+        # Loop on attributes
+        for attr_name, attr_specs in type(self).model_fields.items():
+            self._merge_attr(other, attr_name)
+
+        # Special case of the _data key
+        if hasattr(self, '_data'):
+            self._merge_attr(other, '_data')
+
+    def _merge_attr(self, other, attr_name):
+        v_self = getattr(self, attr_name)
+        v_other = getattr(other, attr_name)
+        # 0. If all None, skip
+        if v_self is None and v_other is None:
+            return
+
+        # 0. If other is None, keep the value of the reference (self)
+        if v_other is None:
+            return
+
+        # 1. If one is None, use the other value
+        if v_self is None and v_other is not None:
+            setattr(self, attr_name, v_other)
+            return
+
+        # 2a. Special case: concatenate comments
+        if 'comment' in attr_name:
+            if isinstance(v_self, str) and isinstance(v_other, str):
+                if v_self == v_other:
+                    return
+
+                v_new = v_self + '\n' + v_other
+                setattr(self, attr_name, v_new)
+
+        # 2b. Special case: _data key
+        if attr_name == '_data' and isinstance(v_self, pd.DataFrame) and isinstance(v_other, pd.DataFrame):
+            if v_self.equals(v_other):
+                return
+            elif len(v_other) == 0:
+                return
+            elif len(v_self) == 0:
+                setattr(self, attr_name, v_other)
+            else:
+                logging.warning(f'Inconsistent data during merge between {self.__class__.__name__}.{attr_name}. '
+                                'Possible data loss (not merged).')
+            return
+
+        # 3. Treatements based on type.
+        # Raise warning if values are different and are merged with loss of data
+        if isinstance(v_self, str) \
+                or isinstance(v_self, int) or isinstance(v_self, float) \
+                or isinstance(v_self, tuple) \
+                or isinstance(v_self, datetime.datetime):
+            if v_self == v_other:
+                return  # This equality test could not be done on all data types, be careful.
+            else:
+                logging.warning(f'Inconsistent data during merge between {self.__class__.__name__}.{attr_name}. '
+                                f'Values differ: {v_self} (reference) != {v_other} (merged)')
+                return
+        elif isinstance(v_self, list) and isinstance(v_other, list):
+            v_new = v_self + v_other
+            setattr(self, attr_name, v_new)
+        elif hasattr(v_self, 'merge') and callable(v_self.merge):
+            v_self.merge(v_other)
+        else:
+            logging.warning(f'Merge: Could not compare values of {self.__class__.__name__}.{attr_name}. '
+                            'Possible data loss (not merged).')
+            return
+
+        # TODO: To be done:  <22-01-25, Léo Viallon-Galinier> #
+        # - if has function is_null, treat the resul as "is None"
+        # - For list merging, check if the classes implement is_null or equals functions
+        #   and act accordingly to the results

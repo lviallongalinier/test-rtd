@@ -6,7 +6,7 @@ import datetime
 import pydantic
 
 from snowprofile._constants import cloudiness_attribution, QUALITY_FLAGS
-from snowprofile._base_classes import AdditionalData, BaseData, \
+from snowprofile._base_classes import AdditionalData, BaseData, BaseMergeable, \
     datetime_with_tz, datetime_tuple_with_tz, get_dataframe_checker
 
 __all__ = ['Person', 'Time', 'Observer', 'Location', 'Weather', 'SurfaceConditions',
@@ -27,7 +27,7 @@ class Person(pydantic.BaseModel):
     additional_data: typing.Optional[AdditionalData] = None
 
 
-class Time(pydantic.BaseModel):
+class Time(pydantic.BaseModel, BaseMergeable):
     """
     Class to store the date and time of observation (and additional date/time considerations)
 
@@ -59,7 +59,7 @@ class Time(pydantic.BaseModel):
         description="Room to store additional data for CAAML compatibility (customData), do not use.")
 
 
-class Observer(pydantic.BaseModel):
+class Observer(pydantic.BaseModel, BaseMergeable):
     """
     Class to store observation institution and observer details.
 
@@ -96,7 +96,7 @@ class Observer(pydantic.BaseModel):
     contact_persons: typing.List[Person] = pydantic.Field([Person(), ], min_length=1)
 
 
-class Location(pydantic.BaseModel):
+class Location(pydantic.BaseModel, BaseMergeable):
     """
     Class to store the observation location details
     (geographical position and details of the observation site).
@@ -189,7 +189,7 @@ class Location(pydantic.BaseModel):
         return None
 
 
-class Weather(pydantic.BaseModel):
+class Weather(pydantic.BaseModel, BaseMergeable):
     """
     Class to store the weather at timeof observation.
 
@@ -279,7 +279,7 @@ class Weather(pydantic.BaseModel):
         return None
 
 
-class SpectralAlbedo(pydantic.BaseModel, BaseData):
+class SpectralAlbedo(pydantic.BaseModel, BaseData, BaseMergeable):
     """
     Class to store spectral albedo
 
@@ -318,7 +318,7 @@ class SpectralAlbedo(pydantic.BaseModel, BaseData):
             raise ValueError('data key is required')
 
 
-class SolarMask(pydantic.BaseModel):
+class SolarMask(pydantic.BaseModel, BaseMergeable):
     """
     Class to store solar mask
 
@@ -349,7 +349,7 @@ class SolarMask(pydantic.BaseModel):
             raise ValueError('data key is required')
 
 
-class SurfaceConditions(pydantic.BaseModel):
+class SurfaceConditions(pydantic.BaseModel, BaseMergeable):
     """
     Description of the snow surface conditions.
 
@@ -469,7 +469,7 @@ class SurfaceConditions(pydantic.BaseModel):
     additional_data: typing.Optional[AdditionalData] = None
 
 
-class Environment(pydantic.BaseModel):
+class Environment(pydantic.BaseModel, BaseMergeable):
     """
     Description of the site environment (independantly of the observation date).
 

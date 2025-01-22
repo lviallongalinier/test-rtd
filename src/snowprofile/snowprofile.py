@@ -8,10 +8,10 @@ from snowprofile.classes import Time, Observer, Location, Weather, SurfaceCondit
 from snowprofile.profiles import Stratigraphy, TemperatureProfile, DensityProfile, LWCProfile, _SSAProfile, \
     _HardnessProfile, StrengthProfile, ImpurityProfile, ScalarProfile, VectorialProfile
 from snowprofile.stability_tests import _StabilityTest
-from snowprofile._base_classes import AdditionalData
+from snowprofile._base_classes import AdditionalData, BaseMergeable
 
 
-class SnowProfile(pydantic.BaseModel):
+class SnowProfile(pydantic.BaseModel, BaseMergeable):
 
     """
     The base class for representing and manipulating a snow profile.
