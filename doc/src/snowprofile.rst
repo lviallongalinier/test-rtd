@@ -6,3 +6,5 @@ The SnowProfile class
    :show-inheritance:
    :inherited-members: BaseModel
    :member-order: bysource
+
+.. automethod:: snowprofile.SnowProfile.merge
