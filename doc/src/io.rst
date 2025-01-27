@@ -26,3 +26,16 @@ You can get a dict-based JSON-serializable representation of a SnowProfile objec
 
 .. autofunction:: snowprofile.io.to_dict
 
+Meteo-France internal database (Bdclim)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Readers to get operational observations from Meteo-France internal database structure. It is only readers (no writing in this format possible).
+
+A first function allow to identify available observations:
+
+.. autofunction:: snowprofile.io.mf_bdclim.search_mf_bdclim_dates
+
+A second function allow for getting the observation itself:
+
+.. autofunction:: snowprofile.io.mf_bdclim.read_mf_bdclim
+

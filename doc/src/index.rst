@@ -28,6 +28,7 @@ Concepts to understand before using the module
    examples.rst
    units.rst
    uncertainties.rst
+   configuration.rst
 
 Base data classes
 ^^^^^^^^^^^^^^^^^
