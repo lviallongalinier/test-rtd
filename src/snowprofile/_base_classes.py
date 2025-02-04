@@ -199,7 +199,10 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
                 if not set(value[key].values).issubset(set(d['values'])):
                     raise ValueError(f'Unauthorized value for key {key}')
 
-        return value.sort_values(depth_keys[0], ascending=False)
+        if len(depth_keys) > 0:
+            value = value.sort_values(depth_keys[0], ascending=False)
+
+        return value
 
     return check_dataframe
 

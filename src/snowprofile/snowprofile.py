@@ -133,7 +133,6 @@ class SnowProfile(pydantic.BaseModel, BaseMergeable):
     id: typing.Optional[str] = None
     comment: typing.Optional[str] = None
     profile_comment: typing.Optional[str] = None
-    profiles_comment: typing.Optional[str] = None
     time: Time = Time()
     observer: Observer = Observer()
     location: Location = Location(name='Unknown', latitude=43.600824, longitude=1.432964)

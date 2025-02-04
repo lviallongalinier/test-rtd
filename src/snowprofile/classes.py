@@ -318,7 +318,7 @@ class SpectralAlbedo(pydantic.BaseModel, BaseData, BaseMergeable):
             raise ValueError('data key is required')
 
 
-class SolarMask(pydantic.BaseModel, BaseMergeable):
+class SolarMask(pydantic.BaseModel, BaseData):
     """
     Class to store solar mask
 
