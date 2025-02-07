@@ -66,7 +66,7 @@ def read_mf_bdclim(numposte, date, db_config={}):
 
     # Stratigraphy
     s = Stratigraphy(data={
-        'top_depth': [p[0] for p in profil],
+        'top_height': [p[0] for p in profil],
         'thickness': [p[1] for p in profil],
         'grain_1': [p[2] for p in profil],
         'grain_2': [p[3] for p in profil],
@@ -78,7 +78,7 @@ def read_mf_bdclim(numposte, date, db_config={}):
     d_v = [p[7] for p in profil]
     if len(set(d_v)) > 0 and set(d_v) != set([None, ]):
         d = [DensityProfile(data={
-            'top_depth': [p[0] for i, p in enumerate(profil) if d_v[i] is not None],
+            'top_height': [p[0] for i, p in enumerate(profil) if d_v[i] is not None],
             'thickness': [p[1] for i, p in enumerate(profil) if d_v[i] is not None],
             'density': [p[7] for i, p in enumerate(profil) if d_v[i] is not None]}), ]
     else:
@@ -89,7 +89,7 @@ def read_mf_bdclim(numposte, date, db_config={}):
     # RAM Profile
     if len(profil_ram) > 0:
         r = [HardnessProfile(data={
-            'top_depth': [p[0] for p in profil_ram],
+            'top_height': [p[0] for p in profil_ram],
             'thickness': [p[1] for p in profil_ram],
             'hardness': [p[2] for p in profil_ram]}), ]
     else:
@@ -98,7 +98,7 @@ def read_mf_bdclim(numposte, date, db_config={}):
     # Temp profile
     if len(profil_t) > 0:
         t = [TemperatureProfile(data={
-            'depth': [p[0] for p in profil_t],
+            'height': [p[0] for p in profil_t],
             'temperature': [p[1] for p in profil_t]}), ]
     else:
         t = []

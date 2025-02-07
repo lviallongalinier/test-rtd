@@ -36,8 +36,8 @@ class Stratigraphy(BaseProfile):
 
     The data contains:
 
-    - ``top_depth``
-    - ``bottom_depth``
+    - ``top_height``
+    - ``bottom_height``
     - ``thickness``
     - ``grain_1``
     - ``grain_2``
@@ -93,7 +93,7 @@ class TemperatureProfile(BaseProfile2):
 
     The data contains:
 
-    - ``depth``
+    - ``height``
     - ``temperature`` (°C)
 
     and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
@@ -116,8 +116,8 @@ class DensityProfile(BaseProfile2):
 
     The data contains:
 
-    - ``top_depth``
-    - ``bottom_depth``
+    - ``top_height``
+    - ``bottom_height``
     - ``thickness``
     - ``density`` (kg/m3)
 
@@ -158,8 +158,8 @@ class LWCProfile(BaseProfile2):
 
     The data contains:
 
-    - ``top_depth``
-    - ``bottom_depth``
+    - ``top_height``
+    - ``bottom_height``
     - ``thickness``
     - ``lwc`` (% vol.)
 
@@ -208,8 +208,8 @@ class SSAProfile(_SSAProfile):
 
     The data contains:
 
-    - ``top_depth``
-    - ``bottom_depth``
+    - ``top_height``
+    - ``bottom_height``
     - ``thickness``
     - ``ssa`` (m2/kg)
 
@@ -231,7 +231,7 @@ class SSAPointProfile(_SSAProfile):
 
     The data contains:
 
-    - ``depth``
+    - ``height``
     - ``ssa`` (m2/kg)
 
     and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
@@ -268,8 +268,8 @@ class HardnessProfile(_HardnessProfile):
 
     The data contains:
 
-    - ``top_depth``
-    - ``bottom_depth``
+    - ``top_height``
+    - ``bottom_height``
     - ``thickness``
     - ``hardness`` (N)
 
@@ -291,8 +291,8 @@ class RamSondeProfile(_HardnessProfile):
 
     The data contains:
 
-    - ``top_depth``
-    - ``bottom_depth``
+    - ``top_height``
+    - ``bottom_height``
     - ``thickness``
     - ``hardness`` (N)
     - ``weight_hammer``
@@ -324,8 +324,8 @@ class StrengthProfile(BaseProfile2):
     The data contains:
 
 
-    - ``top_depth``
-    - ``bottom_depth``
+    - ``top_height``
+    - ``bottom_height``
     - ``thickness``
     - ``strength`` (N)
     - ``fracture_character`` (optional)
@@ -375,8 +375,8 @@ class ImpurityProfile(BaseProfile2):
 
     The data contains:
 
-    - ``top_depth``
-    - ``bottom_depth``
+    - ``top_height``
+    - ``bottom_height``
     - ``thickness``
     - ``mass_fraction`` or ``volume_fraction``
 
@@ -426,8 +426,8 @@ class ScalarProfile(BaseProfile2):
 
     The data contains:
 
-    - ``top_depth``
-    - ``bottom_depth``
+    - ``top_height``
+    - ``bottom_height``
     - ``thickness``
     - ``data``
 

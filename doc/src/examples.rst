@@ -38,7 +38,7 @@ The created profile does not have any name and the spatial localization is more 
        method_of_measurement="Snow Cutter",
        quality_of_measurement="Good",
        probed_thickness=0.03,  # 3cm cutter thickness
-       data = {'top_depth': [1.2, 1.1, 1, 0.5],
+       data = {'top_height': [1.2, 1.1, 1, 0.5],
                'thickness': [0.1, 0.1, 0.5, 0.5],
                'density': [75, 100, 180, 230]}
    )
@@ -52,6 +52,6 @@ NB : when changing data, you have to re-assign the dataframe to the data key of 
    df = dp.data
    # Let's put a little bit more of snow on ground!
    df['thickness'] *= 2
-   df['top_depth'] *= 2
-   dp.data = df[['thickness', 'top_depth', 'density']]
+   df['top_height'] *= 2
+   dp.data = df[['thickness', 'top_height', 'density']]
 

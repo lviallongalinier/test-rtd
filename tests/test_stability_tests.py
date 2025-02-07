@@ -44,7 +44,7 @@ class TestRBStabilityTest(unittest.TestCase, BaseTestStability):
     CLASS_result = snowprofile.stability_tests.RBStabilityTestResult
     result = {'test_score': 2}
     result2 = {'test_score': 5, 'grain_1': 'PP', 'fracture_character': 'SP', 'release_type': 'WB'}
-    additional_keys_layer = {'depth': 0.21}
+    additional_keys_layer = {'height': 0.21}
 
 
 class TestCTStabilityTest(unittest.TestCase, BaseTestStability):
@@ -52,7 +52,7 @@ class TestCTStabilityTest(unittest.TestCase, BaseTestStability):
     CLASS_result = snowprofile.stability_tests.CTStabilityTestResult
     result = {'test_score': 21}
     result2 = {'test_score': 29, 'grain_1': 'DF', 'fracture_character': 'BRK'}
-    additional_keys_layer = {'depth': 0.21}
+    additional_keys_layer = {'height': 0.21}
 
 
 class TestECTStabilityTest(unittest.TestCase, BaseTestStability):
@@ -60,7 +60,7 @@ class TestECTStabilityTest(unittest.TestCase, BaseTestStability):
     CLASS_result = snowprofile.stability_tests.ECTStabilityTestResult
     result = {'test_score': 21}
     result2 = {'test_score': 29, 'grain_1': 'PP', 'propagation': True}
-    additional_keys_layer = {'depth': 0.21}
+    additional_keys_layer = {'height': 0.21}
 
 
 class TestShearFrameStabilityTest(unittest.TestCase, BaseTestStability):
@@ -68,7 +68,7 @@ class TestShearFrameStabilityTest(unittest.TestCase, BaseTestStability):
     CLASS_result = snowprofile.stability_tests.ShearFrameStabilityTestResult
     result = {'force': 4}
     result2 = {'force': 8, 'grain_1': 'PP', 'fracture_character': 'SP'}
-    additional_keys_layer = {'depth': 0.21}
+    additional_keys_layer = {'height': 0.21}
 
 
 class TestPSTStabilityTest(unittest.TestCase):
@@ -76,7 +76,7 @@ class TestPSTStabilityTest(unittest.TestCase):
         st = snowprofile.stability_tests.PSTStabilityTest(cut_length=0.12, propagation='End')
         assert st.id is None
         st = snowprofile.stability_tests.PSTStabilityTest(cut_length=0.12, column_length=2., propagation='Arr',
-                                                          depth=0.23, grain_1 = 'SH')
+                                                          height=0.23, grain_1 = 'SH')
         assert st.id is None
 
 

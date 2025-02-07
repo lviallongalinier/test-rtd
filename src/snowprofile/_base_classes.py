@@ -106,20 +106,20 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
         # Check columns
         columns = set(value.columns)
         if _mode == 'Layer':
-            two_of_three = set(['top_depth', 'bottom_depth', 'thickness'])
+            two_of_three = set(['top_height', 'bottom_height', 'thickness'])
             if len(columns.intersection(two_of_three)) == 3:
-                if not (value['top_depth'] - value['thickness'] == value['bottom_depth']).all():
-                    raise ValueError('Provided top_depth, bottom_depth and thickness that are inconsistent.')
+                if not (value['top_height'] - value['thickness'] == value['bottom_height']).all():
+                    raise ValueError('Provided top_height, bottom_height and thickness that are inconsistent.')
             elif len(columns.intersection(two_of_three)) != 2:
                 raise ValueError(f'Should have 2 of three in {", ".join(two_of_three)}.')
             accepted_columns_min = set([])
-            accepted_columns_max = set(['top_depth', 'bottom_depth', 'thickness'])
+            accepted_columns_max = set(['top_height', 'bottom_height', 'thickness'])
         elif _mode == "Spectral":
             accepted_columns_min = set(['min_wavelength', 'max_wavelength'])
             accepted_columns_max = accepted_columns_min
         elif _mode == 'Point':
-            accepted_columns_min = set(['depth'])
-            accepted_columns_max = set(['depth'])
+            accepted_columns_min = set(['height'])
+            accepted_columns_max = set(['height'])
         elif _mode == 'None':
             accepted_columns_min = set()
             accepted_columns_max = set()
@@ -142,26 +142,26 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
         # Depths processing
         # - Ensure types
         if _mode == 'Layer':
-            depth_keys = ['top_depth', 'bottom_depth', 'thickness']
+            height_keys = ['top_height', 'bottom_height', 'thickness']
         elif _mode == "Point":
-            depth_keys = ['depth']
+            height_keys = ['height']
         elif _mode == "Spectral":
-            depth_keys = ['min_wavelength', 'max_wavelength']
+            height_keys = ['min_wavelength', 'max_wavelength']
         else:
-            depth_keys = []
-        for key in depth_keys:
+            height_keys = []
+        for key in height_keys:
             if key in columns:
                 value[key] = value[key].astype('float')
-        # - Completion of columns to ensure that top_depth, bottom_depth an dthickess are defined and coherent
+        # - Completion of columns to ensure that top_height, bottom_height an dthickess are defined and coherent
         if _mode == 'Layer':
-            if 'top_depth' not in columns:
-                value['top_depth'] = value['bottom_depth'] + value['thickness']
-            if 'bottom_depth' not in columns:
-                value['bottom_depth'] = value['top_depth'] - value['thickness']
+            if 'top_height' not in columns:
+                value['top_height'] = value['bottom_height'] + value['thickness']
+            if 'bottom_height' not in columns:
+                value['bottom_height'] = value['top_height'] - value['thickness']
             if 'thickness' not in columns:
-                value['thickness'] = value['top_depth'] - value['bottom_depth']
+                value['thickness'] = value['top_height'] - value['bottom_height']
         # - Ensure reasonnable values and no nan
-        for key in depth_keys:
+        for key in height_keys:
             if pd.isna(value[key]).any():
                 raise ValueError(f'Nan values are not allowed in {key} field')
             if value[key].min() < 0:
@@ -199,8 +199,8 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
                 if not set(value[key].values).issubset(set(d['values'])):
                     raise ValueError(f'Unauthorized value for key {key}')
 
-        if len(depth_keys) > 0:
-            value = value.sort_values(depth_keys[0], ascending=False)
+        if len(height_keys) > 0:
+            value = value.sort_values(height_keys[0], ascending=False)
 
         return value
 

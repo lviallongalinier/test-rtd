@@ -26,7 +26,7 @@ class TestSnowProfile(unittest.TestCase):
             method_of_measurement="Snow Cutter",
             quality_of_measurement="Good",
             probed_thickness=0.03,  # 3cm cutter thickness
-            data = {'top_depth': [1.2, 1.1, 1.0, 0.5],
+            data = {'top_height': [1.2, 1.1, 1.0, 0.5],
                     'thickness': [0.1, 0.1, 0.5, 0.5],
                     'density': [75, 100, 180, 230]}
         )

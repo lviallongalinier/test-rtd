@@ -18,22 +18,22 @@ class BaseTestProfiles:
         """
         Check correct instantiation of the class with minimal data
         """
-        sp_pd = self.CLASS(data={'top_depth': [1, 2],
+        sp_pd = self.CLASS(data={'top_height': [1, 2],
                                  'thickness': [1, 1],
                                  self.key: self.values, },
                            **self.additional_keys)
         assert sp_pd.id is None
 
     def test_edit_values(self):
-        sp_pd = self.CLASS(data={'top_depth': [1, 2],
+        sp_pd = self.CLASS(data={'top_height': [1, 2],
                                  'thickness': [1, 1],
                                  self.key: self.values, },
                            **self.additional_keys)
         data = sp_pd.data
-        data['top_depth'].iloc[1] += 1
+        data['top_height'].iloc[1] += 1
 
         # check that at this stage values are unchanged and correctly sorted
-        assert (sp_pd.data['top_depth'].values == np.array([2, 1])).all()
+        assert (sp_pd.data['top_height'].values == np.array([2, 1])).all()
 
         # Update with inconsistencies
         try:
@@ -46,7 +46,7 @@ class BaseTestProfiles:
         data['thickness'].iloc[1] += 1
         sp_pd.data = data
         # Check correctly updated
-        assert (sp_pd.data['top_depth'].values == np.array([2, 2])).all()
+        assert (sp_pd.data['top_height'].values == np.array([2, 2])).all()
 
     def test_init_profile_fail(self):
         """
@@ -54,7 +54,7 @@ class BaseTestProfiles:
         """
         self.assertRaises(
             ValueError,
-            self.CLASS, data={'top_depth': [1, 2],
+            self.CLASS, data={'top_height': [1, 2],
                               self.key: self.values, },
             **self.additional_keys
         )
@@ -63,18 +63,18 @@ class BaseTestProfiles:
         """
         Check the possibility to add quality and uncertainty flags
         """
-        sp_pd = self.CLASS(data={'top_depth': [1, 2],
+        sp_pd = self.CLASS(data={'top_height': [1, 2],
                                  'thickness': [1, 1],
                                  self.key: self.values,
                                  'quality': ['Good', 'Uncertain'],
                                  'uncertainty': [10, 60], },
                            **self.additional_keys)
         assert sp_pd.id is None
-        assert (sp_pd.data['quality'].loc[sp_pd.data['top_depth'] == 1] == 'Good').all()
-        assert (sp_pd.data['quality'].loc[sp_pd.data['top_depth'] == 2] == 'Uncertain').all()
+        assert (sp_pd.data['quality'].loc[sp_pd.data['top_height'] == 1] == 'Good').all()
+        assert (sp_pd.data['quality'].loc[sp_pd.data['top_height'] == 2] == 'Uncertain').all()
 
         try:
-            sp_pd = self.CLASS(data={'top_depth': [1, 2],
+            sp_pd = self.CLASS(data={'top_height': [1, 2],
                                      'thickness': [1, 1],
                                      self.key: self.values,
                                      'quality': ['Good', 'Bof'], },
@@ -84,7 +84,7 @@ class BaseTestProfiles:
             pass
 
     def test_init_profile_quality_uncertainty_profile(self):
-        sp_pd = self.CLASS(data={'top_depth': [1, 2],
+        sp_pd = self.CLASS(data={'top_height': [1, 2],
                                  'thickness': [1, 1],
                                  self.key: self.values, },
                            quality_of_measurement="Bad",
@@ -111,7 +111,7 @@ class BaseTestProfiles:
             pass
 
     def test_init_profile_with_metadata(self):
-        sp_pd = self.CLASS(data={'top_depth': [1, 2],
+        sp_pd = self.CLASS(data={'top_height': [1, 2],
                                  'thickness': [1, 1],
                                  self.key: self.values, },
                            comment=f"My beautiful {self.key} profile",

@@ -19,7 +19,7 @@ def gen_snowprofile(offset=0):
         method_of_measurement="Snow Cutter",
         quality_of_measurement="Good",
         probed_thickness=0.03,  # 3cm cutter thickness
-        data = {'top_depth': [1.2 + offset, 1.1 + offset, 1.0 + offset, 0.50],
+        data = {'top_height': [1.2 + offset, 1.1 + offset, 1.0 + offset, 0.50],
                 'thickness': [0.1, 0.1, 0.5, 0.5],
                 'density': [75, 100, 180, 230]}
     )

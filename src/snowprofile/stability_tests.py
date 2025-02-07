@@ -32,12 +32,12 @@ class _StabilityTestResult(pydantic.BaseModel):
         validate_assignment=True,
         extra='forbid')
 
-    depth: typing.Optional[float] = pydantic.Field(
+    height: typing.Optional[float] = pydantic.Field(
         None,
-        description="Depth of the broken layer (with zero at bottom of the snowpack, in m)")
+        description="height of the broken layer (with zero at bottom of the snowpack, in m)")
     layer_thickness: typing.Optional[float] = pydantic.Field(
         None,
-        description="Thickness of the broken layer, the depth field being the top of this layer")
+        description="Thickness of the broken layer, the height field being the top of this layer")
     grain_1: typing.Optional[typing.Literal[tuple(GRAIN_SHAPES)]] = pydantic.Field(
         None,
         description="Main grain shape of the broken layer")
