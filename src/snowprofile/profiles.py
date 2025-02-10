@@ -68,7 +68,7 @@ class Stratigraphy(BaseProfile):
                      ),
         loc=dict(type='O',
                  optional=True,
-                 values=['no', 'top', 'bottom', 'all']),
+                 values=['no', 'top', 'bottom', 'all', 'true', 'false']),
         uncertainty=dict(optional=True,
                          nan_allowed=True),
         quality=dict(optional=True,
@@ -348,6 +348,10 @@ class StrengthProfile(BaseProfile2):
         "other"]] = pydantic.Field(
             None,
             description="Measurement method")
+    strength_type: typing.Optional[typing.Literal[
+        "compressive", "tensile", "shear", "mixed", "other"]] = pydantic.Field(
+            None,
+            description="Shear direction: compressive, tensile, shear, other or mixed")
     probed_area: typing.Optional[float] = pydantic.Field(
         None,
         description="Probed area (m2)")
@@ -389,10 +393,6 @@ class ImpurityProfile(BaseProfile2):
     impurity_type: typing.Literal[
         "Black Carbon", "Dust", "Isotopes", "Other"] = pydantic.Field(
             description="Impurity type for the profile")
-    unit: typing.Literal[
-        "mass fraction", "volume fraction"] = pydantic.Field(
-            "mass fraction",
-            description="Unit for measurement mass or volume fraction")
     probed_volume: typing.Optional[float] = pydantic.Field(
         None,
         description="Probe volume (m3)")

@@ -6,7 +6,7 @@ The SnowProfile object (and only this one) can be stored into different formats 
 Internal JSON representation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Temporary storage of the data in an internal JSON-based format.
+Temporary storage of the data in an internal JSON-based format. Note that this format is not intended to be used for persistant data storage. Re-read of such data may or may not be compatible between versions of the package.
 
 .. autofunction:: snowprofile.io.read_internal_json
 
