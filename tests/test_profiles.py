@@ -166,5 +166,16 @@ class TestOtherProfile(unittest.TestCase, BaseTestProfiles):
     additional_keys = {'unit': 'm', 'parameter': 'A random length in m'}
 
 
+class TestOtherVectorialProfile(unittest.TestCase, BaseTestProfiles):
+    CLASS = snowprofile.profiles.VectorialProfile
+    key = 'data'
+    additional_keys = {'unit': 'm', 'parameter': 'A random length in m', 'rank': 2}
+    values = [[100, 100], [75, 76]]
+
+    def test_edit_values(self):
+        # Edit has to be checked because it raises a warning
+        pass
+
+
 if __name__ == "__main__":
     unittest.main()

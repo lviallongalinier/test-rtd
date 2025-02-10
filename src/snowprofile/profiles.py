@@ -451,7 +451,17 @@ class ScalarProfile(BaseProfile2):
 class VectorialProfile(ScalarProfile):
     """
     Other profile of vectorial data (data inherently multi-dimensional, with same unit and type).
+
+    ``data`` is a list or numpy array
     """
     rank: int = pydantic.Field(
         gt = 1,
         description="Length of the vector (>1, otherwise use OtherScalarProfile)")
+    _data_config = dict(
+        data=dict(type='O'),
+        uncertainty=dict(optional=True,
+                         nan_allowed=True),
+        quality=dict(optional=True,
+                     type='O',
+                     values=QUALITY_FLAGS + [None]),
+    )
