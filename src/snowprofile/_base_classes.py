@@ -12,10 +12,12 @@ import logging
 import pydantic
 import pydantic.json_schema
 import pandas as pd
+import numpy as np
 
 
 class AdditionalData(pydantic.BaseModel):
     data: typing.Any
+    origin: typing.Optional[str] = None
 
 
 def force_utc(value: str | datetime.datetime) -> datetime.datetime:
@@ -110,7 +112,7 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
             if len(columns.intersection(two_of_three)) == 3:
                 if not (value['top_height'] - value['thickness'] == value['bottom_height']).all():
                     raise ValueError('Provided top_height, bottom_height and thickness that are inconsistent.')
-            elif len(columns.intersection(two_of_three)) != 2:
+            elif len(columns.intersection(two_of_three)) != 2 and columns != ('top_height'):
                 raise ValueError(f'Should have 2 of three in {", ".join(two_of_three)}.')
             accepted_columns_min = set([])
             accepted_columns_max = set(['top_height', 'bottom_height', 'thickness'])
@@ -154,6 +156,9 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
                 value[key] = value[key].astype('float')
         # - Completion of columns to ensure that top_height, bottom_height an dthickess are defined and coherent
         if _mode == 'Layer':
+            # TODO: Reconstruct thickness from top_depth or bottom_depth if there is nan inside
+            # or if only top_height is provided
+            # (thickness is optional in a CAAML file)
             if 'top_height' not in columns:
                 value['top_height'] = value['bottom_height'] + value['thickness']
             if 'bottom_height' not in columns:
@@ -164,8 +169,9 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
         for key in height_keys:
             if pd.isna(value[key]).any():
                 raise ValueError(f'Nan values are not allowed in {key} field')
-            if value[key].min() < 0:
-                raise ValueError(f'Negative values for {key} is not accepted.')
+            # For CAAML format we need to accept negative height values
+            # if value[key].min() < 0:
+            #     raise ValueError(f'Negative values for {key} is not accepted.')
             if _mode in ['Point', 'Layer'] and value[key].max() > 10:
                 logging.warning(f'Values above 10m for {key}. Please check your data !')
 
@@ -179,21 +185,23 @@ def get_dataframe_checker(_mode='Layer', **kwargs):
             # Check type
             _type = d['type'] if 'type' in d else 'float'
             value[key] = value[key].astype(_type)
-            # Check min/max for numeric types
-            if pd.isna(value[key].min()):
-                logging.warning(f'Data from key {key} is empty !')
-            if 'min' in d:
-                _min = d['min']
-                if not pd.isna(value[key].min()) and value[key].min() < _min:
-                    raise ValueError(f'Data from key {key} has unaccepted values (below {_min}).')
-            if 'max' in d:
-                _max = d['max']
-                if not pd.isna(value[key].max()) and value[key].max() > _max:
-                    raise ValueError(f'Data from key {key} has unaccepted values (above {_max}).')
-            # Check nan presence
-            nan_allowed = d['nan_allowed'] if 'nan_allowed' in d else False
-            if not nan_allowed and pd.isna(value[key]).any():
-                raise ValueError(f'Nan values are not allowed in {key} field')
+            # Check min/max and nan presence for numeric types
+            if np.issubdtype(value[key].dtype, np.number):
+                # Check min/max
+                if pd.isna(value[key].min()):
+                    logging.warning(f'Data from key {key} is empty !')
+                if 'min' in d:
+                    _min = d['min']
+                    if not pd.isna(value[key].min()) and value[key].min() < _min:
+                        raise ValueError(f'Data from key {key} has unaccepted values (below {_min}).')
+                if 'max' in d:
+                    _max = d['max']
+                    if not pd.isna(value[key].max()) and value[key].max() > _max:
+                        raise ValueError(f'Data from key {key} has unaccepted values (above {_max}).')
+                # Check nan presence
+                nan_allowed = d['nan_allowed'] if 'nan_allowed' in d else False
+                if not nan_allowed and pd.isna(value[key]).any():
+                    raise ValueError(f'Nan values are not allowed in {key} field')
             # Check fixed allowed values if needed
             if 'values' in d:
                 if not set(value[key].values).issubset(set(d['values'])):
