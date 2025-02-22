@@ -30,8 +30,8 @@ Moreover, **all** codes must specify the encoding, which have to be ``utf-8``:
    
    # -*- coding: utf-8 -*-
 
-Imports
-^^^^^^^
+Imports and dependecies
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Please avoid relative imports in snowprofile.
 
@@ -39,10 +39,12 @@ See PEP 8 import section https://www.python.org/dev/peps/pep-0008/#imports for m
 
 Of course star-imports (``from XXX import *``) are prohibited.
 
+Dependencies should be limited to those absolutely necessary. Please use the python standard library as much as possible and discuss with maintainers before introducing a new dependency.
+
 Language
 --------
 
-Of course, all comments in the code, documentation and commit message have to be in english.
+Of course, all comments in the code, documentation, commit message or variable names have to be in english.
 
 Tests
 -----
