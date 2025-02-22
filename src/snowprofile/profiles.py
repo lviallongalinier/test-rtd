@@ -260,9 +260,15 @@ class _HardnessProfile(BaseProfile2):
         "other"]] = pydantic.Field(
             None,
             description="Measurement method")
+    surface_of_indentation: typing.Optional[float] = pydantic.Field(
+        None,
+        description='Indentation surface of the measurement tool (m2)')
+    penetration_speed: typing.Optional[float] = pydantic.Field(
+        None,
+        description='Penetration speed (m/s)')
 
 
-class HardnessProfile(_HardnessProfile):
+class HardnessPointProfile(_HardnessProfile):
     """
     Vertical profile of hardness (N).
 
@@ -285,9 +291,10 @@ class HardnessProfile(_HardnessProfile):
     )
 
 
-class RamSondeProfile(_HardnessProfile):
+class HardnessProfile(_HardnessProfile):
     """
     Special type of Hardness profile for RamSonde measurements
+    or Hardness profiles by layer
 
     The data contains:
 
@@ -295,19 +302,19 @@ class RamSondeProfile(_HardnessProfile):
     - ``bottom_height``
     - ``thickness``
     - ``hardness`` (N)
-    - ``weight_hammer``
-    - ``weight_tube``
-    - ``n_drops``
-    - ``drop_height``
+    - ``weight_hammer`` (kg)
+    - ``weight_tube`` (kg)
+    - ``n_drops`` (-)
+    - ``drop_height`` (m)
 
     and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
     _data_config = dict(
-        hardness=dict(min=0, optional=True),
-        weight_hammer=dict(min=0),
-        weight_tube=dict(min=0),
-        n_drops=dict(type=int, min=0),
-        drop_height=dict(min=0),
+        hardness=dict(min=0),
+        weight_hammer=dict(min=0, optional=True),
+        weight_tube=dict(min=0, optional=True),
+        n_drops=dict(type=int, min=0, optional=True),
+        drop_height=dict(min=0, optional=True),
         uncertainty=dict(optional=True,
                          nan_allowed=True),
         quality=dict(optional=True,

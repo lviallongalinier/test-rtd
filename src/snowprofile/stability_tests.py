@@ -18,6 +18,15 @@ class _StabilityTest(pydantic.BaseModel):
 
     id: typing.Optional[str] = None
     comment: typing.Optional[str] = None
+    test_nr: typing.Optional[int] = pydantic.Field(
+        None, ge=0,
+        description="Test number (the lower is the higher priority)")
+    name: typing.Optional[str] = pydantic.Field(
+        None,
+        description="Name/short description of the profile")
+    comment: typing.Optional[str] = pydantic.Field(
+        None,
+        description="A comment associated to the profile")
     additional_data: typing.Optional[AdditionalData] = pydantic.Field(
         None,
         description="Room to store additional data for CAAML compatibility (customData), do not use.")
@@ -50,10 +59,10 @@ class _StabilityTestResult(pydantic.BaseModel):
     grain_size_max: typing.Optional[float] = pydantic.Field(
         None,
         description="Maximum Grain size in the broken layer")
-    layer_formation_time: datetime_with_tz = pydantic.Field(
+    layer_formation_time: typing.Optional[datetime_with_tz] = pydantic.Field(
         None,
         description="The formation time of the broken layer.")
-    layer_formation_period: datetime_tuple_with_tz = pydantic.Field(
+    layer_formation_period: typing.Optional[datetime_tuple_with_tz] = pydantic.Field(
         (None, None),
         description="The formation period (begin, end) of the broken layer.")
     layer_comment: typing.Optional[str] = pydantic.Field(
