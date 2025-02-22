@@ -8,6 +8,8 @@ stability_tests packages.
 import datetime
 import typing
 import logging
+import re
+import sys
 
 import pydantic
 import pydantic.json_schema
@@ -22,12 +24,19 @@ class AdditionalData(pydantic.BaseModel):
 
 def force_utc(value: str | datetime.datetime) -> datetime.datetime:
     """
-    Force the tzinfo to be defined in a python datetime object.
+    Parse to a datetime object and force the tzinfo to be defined in a python datetime object.
+
     In case the tzinfo is not provided, assume UTC.
     """
     if value is None:
         return None
     if isinstance(value, str):
+        if sys.version_info.major == 3 and sys.version_info.minor < 11:
+            # On python <= 3.10, datetime.fromisoformat have troubles with decimal seconds as
+            # prodived by some other libraries such as NiViz. Get rid of this unnecessary precision.
+            m = re.match(r'([0-9]{4}-[0-9]{2}-[0-9]{2}[ T]?[0-9]{2}:[0-9]{2}:[0-9]{2})\.[0-9]*', value)
+            if m is not None:
+                value = m.group(1) + value[m.span(0)[1]:]
         value = datetime.datetime.fromisoformat(value)
     if value.tzinfo is None:
         return value.replace(tzinfo=datetime.timezone.utc)
