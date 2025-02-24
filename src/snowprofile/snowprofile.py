@@ -121,7 +121,7 @@ class SnowProfile(pydantic.BaseModel, BaseMergeable):
     profiles_comment
       Comment associated to profiles, for CAAML compatibility only, do not use (str)
 
-    additional_data and profiles_additional_data
+    additional_data and profile_additional_data
       Room to store additional data for CAAML compatibility (customData), do not use.
 
     """
@@ -167,4 +167,4 @@ class SnowProfile(pydantic.BaseModel, BaseMergeable):
     other_vectorial_profiles: typing.List[VectorialProfile] = []
     stability_tests: typing.List[_StabilityTest] = []  # To change: accept different stability tests
     additional_data: typing.Optional[AdditionalData] = None
-    profiles_additional_data: typing.Optional[AdditionalData] = None
+    profile_additional_data: typing.Optional[AdditionalData] = None

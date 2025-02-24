@@ -460,7 +460,7 @@ class SurfaceConditions(pydantic.BaseModel, BaseMergeable):
         'Thermometer', 'Hemispheric IR', 'IR thermometer', 'other']] = None
     surface_albedo: typing.Optional[float] = None
     surface_albedo_comment: typing.Optional[str] = None
-    spectral_albedo: typing.List[SpectralAlbedo] = []
+    spectral_albedo: typing.Optional[SpectralAlbedo] = None
     spectral_albedo_comment: typing.Optional[str] = None
     penetration_ram: typing.Optional[float] = pydantic.Field(None, ge=0)
     penetration_foot: typing.Optional[float] = pydantic.Field(None, ge=0)

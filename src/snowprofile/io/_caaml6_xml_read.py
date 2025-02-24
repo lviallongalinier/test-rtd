@@ -104,7 +104,9 @@ def read_caaml6_xml(filename):
         id=_search_gml_id(loc),
         name=_parse_str(root, f'{nss}locRef/{nss}name'),
         point_type=_parse_str(root, f'{nss}locRef/{nss}obsPointSubType'),
-        aspect=_parse_numeric(root, f'{nss}locRef/{nss}validAspect'),
+        aspect=_parse_numeric(root, f'{nss}locRef/{nss}validAspect',
+                              attribution_table={'N': 0, 'NE': 45, 'E': 90, 'SE': 135, 'S': 180,
+                                                 'SW': 225, 'W': 270, 'NW': 315, 'n/a': None}),
         elevation=_parse_numeric(root, f'{nss}locRef/{nss}validElevation'),
         slope=_parse_numeric(root, f'{nss}locRef/{nss}validSlopeAngle'),
         latitude=lat,
@@ -138,8 +140,13 @@ def read_caaml6_xml(filename):
         cloudiness=_parse_str(root, f'{base}/{nss}skiCond'),
         precipitation=_parse_str(root, f'{base}/{nss}precipTI'),
         air_temperature=_parse_numeric(root, f'{base}/{nss}airTempPres'),
-        wind_speed=_parse_numeric(root, f'{base}/{nss}windSpd'),
-        wind_direction=_parse_numeric(root, f'{base}/{nss}windDir'),
+        wind_speed=_parse_numeric(
+            root, f'{base}/{nss}windSpd',
+            attribution_table={'C': 0, 'L': 13.5, 'M': 34.2, 'S': 51.3, 'X': 72}),
+        wind_direction=_parse_numeric(
+            root, f'{base}/{nss}windDir',
+            attribution_table={'N': 0, 'NE': 45, 'E': 90, 'SE': 135, 'S': 180,
+                               'SW': 225, 'W': 270, 'NW': 315, 'n/a': None}),
         air_temperature_measurement_height=_parse_numeric(
             root,
             f'{base}/{nss}metaData/{nss}airTempMeasurementHeight'),
@@ -219,7 +226,7 @@ def read_caaml6_xml(filename):
             root,
             f'{base}/{nss}surfFeatures/{nss}surfAlbedo/{nss}albedo/{nss}metaData/{nss}comment'),
         spectral_albedo=_parse_spectral_albedo(
-            root.findall(
+            root.find(
                 f'{base}/{nss}surfFeatures/{nss}surfAlbedo/{nss}spectralAlbedo'),
             nss=nss),
         spectral_albedo_comment=_parse_str(
@@ -234,10 +241,17 @@ def read_caaml6_xml(filename):
     # Creating SnowProfile object
     base = f'{nss}snowProfileResultsOf/{nss}SnowProfileMeasurements/{nss}snowPackCond'
 
+    # Profile depth is not taken by default from the profileDepth element, to be coherent
+    # with NiViz.
     profile_depth = _parse_numeric(
         root,
         f'{base}/{nss}hS/{nss}Components/{nss}height',
         factor=0.01)  # cm -> m
+    if profile_depth is None:
+        profile_depth = _parse_numeric(
+            root,
+            f'{nss}snowProfileResultsOf/{nss}SnowProfileMeasurements/{nss}profileDepth',
+            factor=0.01)
 
     sp = SnowProfile(
         id=_search_gml_id(root),
@@ -323,7 +337,7 @@ def read_caaml6_xml(filename):
             nss=nss, profile_depth=profile_depth),
         additional_data=_parse_additional_data(root.find(
             f'{nss}customData')),
-        profiles_additional_data = _parse_additional_data(root.find(
+        profile_additional_data = _parse_additional_data(root.find(
             f'{nss}snowProfileResultsOf/{nss}SnowProfileMeasurements/{nss}customData')))
 
     return sp
@@ -355,26 +369,24 @@ def _parse_solar_mask(sm_element, nss=''):
     return sm
 
 
-def _parse_spectral_albedo(sa_elements, nss=''):
-    if sa_elements is None:
-        return []
+def _parse_spectral_albedo(sa_element, nss=''):
+    if sa_element is None:
+        return None
 
     from snowprofile.classes import SpectralAlbedo
 
-    r = []
-    for e in sa_elements:
-        data = _parse_generic_profile(
-            e.findall(f'{nss}spectralAlbedoMeasurement'),
-            {'min_wavelength': {'path': f'{nss}minWaveLength', 'type': 'numeric'},
-             'max_wavelength': {'path': f'{nss}minWaveLength', 'type': 'numeric'},
-             'albedo': {'path': f'{nss}albedo', 'type': 'numeric'},
-             'uncertainty': {'path': f'{nss}albedo', 'type': 'numeric', 'attribute': '{nss}uncertainty'},
-             'quality': {'path': f'{nss}albedo', 'type': 'str', 'attribute': '{nss}quality'},
-             },
-            nss=nss)
-        sm = SpectralAlbedo(data=data)
-        r.append(sm)
-    return r
+    e = sa_element
+    data = _parse_generic_profile(
+        e.findall(f'{nss}spectralAlbedoMeasurement'),
+        {'min_wavelength': {'path': f'{nss}minWaveLength', 'type': 'numeric'},
+         'max_wavelength': {'path': f'{nss}minWaveLength', 'type': 'numeric'},
+         'albedo': {'path': f'{nss}albedo', 'type': 'numeric'},
+         'uncertainty': {'path': f'{nss}albedo', 'type': 'numeric', 'attribute': '{nss}uncertainty'},
+         'quality': {'path': f'{nss}albedo', 'type': 'str', 'attribute': '{nss}quality'},
+         },
+        nss=nss)
+    sm = SpectralAlbedo(data=data)
+    return sm
 
 
 def _parse_generic_profile(elements, definitions, nss=''):

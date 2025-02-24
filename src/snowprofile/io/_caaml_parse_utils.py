@@ -5,7 +5,7 @@ import logging
 import xml.etree.ElementTree as ET
 
 
-def _parse_str(root, path, clean=True, attribute=None):
+def _parse_str(root, path, clean=True, attribute=None, attribution_table=None):
     """
     Search for an element described by path in the XML Element root
     and parse its content as a string.
@@ -33,12 +33,16 @@ def _parse_str(root, path, clean=True, attribute=None):
             else:
                 return None
         if clean and r is not None:
-            return r.strip()
-        else:
-            return r
+            r = r.strip()
+        if attribution_table is not None and r in attribution_table:
+            return attribution_table[r]
+
+        if r in ["inapplicable", "missing", "template", "unknown", "withheld"]:
+            return None
+        return r
 
 
-def _parse_numeric(root, path, factor=1, attribute=None):
+def _parse_numeric(root, path, factor=1, attribute=None, attribution_table=None):
     """
     Search for an element described by path in the XML Element root
     and parse its content as a floating-point number.
@@ -49,24 +53,11 @@ def _parse_numeric(root, path, factor=1, attribute=None):
     :param attribute: Parse the content of an attribute of the given element rather than the text content.
     :returns: Parsed float or None if not found
     """
-    if isinstance(path, list):
-        for p in path:
-            f = root.find(p)
-            if f is not None:
-                break
-    else:
-        f = root.find(path)
+    f = _parse_str(root, path, attribute=attribute, attribution_table=attribution_table)
 
     if f is not None:
-        if attribute is None:
-            r = f.text.strip()
-        else:
-            if attribute in f.attrib:
-                r = f.attrib[attribute]
-            else:
-                return None
         try:
-            f = float(r)
+            f = float(f)
             return f * factor
         except Exception:
             return None
