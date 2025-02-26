@@ -399,19 +399,20 @@ def _parse_generic_profile(elements, definitions, nss=''):
 
     for e in elements:
         for key, value in definitions.items():
+            factor = value['numeric_factor'] if 'numeric_factor' in value else 1
+            attribute = value['attribute'] if 'attribute' in value else None
+            attribution_table = value['attribution_table'] if 'attribution_table' in value else None
+
             if 'type' in value and value['type'] == 'numeric':
-                factor = value['numeric_factor'] if 'numeric_factor' in value else 1
-                attribute = value['attribute'] if 'attribute' in value else None
-                r = _parse_numeric(e, value['path'], factor=factor, attribute=attribute)
+                r = _parse_numeric(e, value['path'], factor=factor, attribute=attribute,
+                                   attribution_table=attribution_table)
                 if 'adapt_total_depth' in value:
                     r = value['adapt_total_depth'] - r
             elif 'type' in value and value['type'] == 'numeric_list':
-                factor = value['numeric_factor'] if 'numeric_factor' in value else 1
-                attribute = value['attribute'] if 'attribute' in value else None
                 r = _parse_numeric_list(e, value['path'], factor=factor, attribute=attribute)
             else:
-                attribute = value['attribute'] if 'attribute' in value else None
-                r = _parse_str(e, value['path'], attribute=attribute)
+                r = _parse_str(e, value['path'], attribute=attribute,
+                               attribution_table=attribution_table)
             results[key].append(r)
 
     # Get rid of columns full of None
@@ -447,9 +448,13 @@ def _parse_stratigraphy(elements, nss='', profile_depth=0):
              'grain_1': {'path': f'{nss}grainFormPrimary', 'type': 'str'},
              'grain_2': {'path': f'{nss}grainFormSecondary', 'type': 'str'},
              'grain_size': {'path': f'{nss}grainSize/{nss}Components/{nss}avg', 'type': 'numeric',
-                            'numeric_factor': 0.001},  # mm -> m
+                            'numeric_factor': 0.001,  # mm -> m
+                            'attribution_table': {'very fine': 0.1, 'fine': 0.35, 'medium': 0.75, 'coarse': 1.5,
+                                                  'very coarse': 3.5, 'extreme': 6}},
              'grain_size_max': {'path': f'{nss}grainSize/{nss}Components/{nss}avgMax', 'type': 'numeric',
-                                'numeric_factor': 0.001},
+                                'numeric_factor': 0.001,
+                                'attribution_table': {'very fine': 0.1, 'fine': 0.35, 'medium': 0.75, 'coarse': 1.5,
+                                                      'very coarse': 3.5, 'extreme': 6}},
              'hardness': {'path': f'{nss}hardness', 'type': 'str'},
              'wetness': {'path': f'{nss}wetness', 'type': 'str'},
              'loc': {'path': f'{nss}layerOfConcern', 'type': 'str'},
@@ -1184,8 +1189,12 @@ def _parse_generic_stability_test_result_fields(elem, nss='', profile_depth=0):
         layer_thickness = _parse_numeric(elem, f'{nss}Layer/{nss}thickness', factor = 0.01),
         grain_1 = _parse_str(elem, f'{nss}Layer/{nss}grainFormPrimary'),
         grain_2 = _parse_str(elem, f'{nss}Layer/{nss}grainFormSecondary'),
-        grain_size = _parse_numeric(elem, f'{nss}Layer/{nss}grainSize/{nss}Components/{nss}avg', factor=0.001),
-        grain_size_max = _parse_numeric(elem, f'{nss}Layer/{nss}grainSize/{nss}Components/{nss}avgMax', factor=0.001),
+        grain_size = _parse_numeric(elem, f'{nss}Layer/{nss}grainSize/{nss}Components/{nss}avg', factor=0.001,
+                                    attribution_table={'very fine': 0.1, 'fine': 0.35, 'medium': 0.75, 'coarse': 1.5,
+                                                       'very coarse': 3.5, 'extreme': 6}),
+        grain_size_max = _parse_numeric(elem, f'{nss}Layer/{nss}grainSize/{nss}Components/{nss}avgMax', factor=0.001,
+                                        attribution_table={'very fine': 0.1, 'fine': 0.35, 'medium': 0.75,
+                                                           'coarse': 1.5, 'very coarse': 3.5, 'extreme': 6}),
         layer_formation_time = _parse_str(elem,
                                           f'{nss}Layer/{nss}validFormationTime/{nss}TimeInstant/{nss}timePosition'),
         layer_formation_period = (
