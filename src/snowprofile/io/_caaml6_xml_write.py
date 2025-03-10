@@ -433,6 +433,27 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     for profile in snowprofile.density_profiles:
         _insert_density_profile(e_r, profile, config=config)
 
+    for profile in snowprofile.lwc_profiles:
+        _insert_lwc_profile(e_r, profile, config=config)
+
+    for profile in snowprofile.strength_profiles:
+        _insert_strength_profile(e_r, profile, config=config)
+
+    for profile in snowprofile.other_scalar_profiles:
+        _insert_otherscalar_profile(e_r, profile, config=config)
+
+    for profile in snowprofile.other_vectorial_profiles:
+        _insert_othervectorial_profile(e_r, profile, config=config)
+
+    for profile in snowprofile.ssa_profiles:
+        _insert_ssa_profile(e_r, profile, config=config)
+
+    for profile in snowprofile.hardness_profiles:
+        _insert_hardness_profile(e_r, profile, config=config)
+
+    # TODO:
+    # - Stb Tests
+
     # - Additional data
     _append_additional_data(e_r, snowprofile.profile_additional_data)
 
@@ -491,20 +512,28 @@ def _gen_common_metadata(e, s, config={}, additional_metadata = [], name='metaDa
         else:
             comment += f"Profile SWE: {s.profile_swe}m\n"
 
-    if s.record_period[0] is not None and s.record_period[1] is not None:
-        e_record_time = ET.SubElement(e_md, f'{ns}recordTime')
-        _ = ET.SubElement(e_record_time, f'{ns}TimePeriod')
-        begin = ET.SubElement(_, f'{ns}beginPosition')
-        begin.text = s.record_period[0].isoformat()
-        end = ET.SubElement(_, f'{ns}endPosition')
-        end.text = s.record_period[1].isoformat()
-    elif s.record_time is not None:
-        e_record_time = ET.SubElement(e_md, f'{ns}recordTime')
-        _ = ET.SubElement(e_record_time, f'{ns}TimeInstant')
-        begin = ET.SubElement(_, f'{ns}timePosition')
+    if config['version'] >= "6.0.6":
+        if s.record_period is not None and s.record_period[0] is not None and s.record_period[1] is not None:
+            e_record_time = ET.SubElement(e_md, f'{ns}recordTime')
+            _ = ET.SubElement(e_record_time, f'{ns}TimePeriod')
+            begin = ET.SubElement(_, f'{ns}beginPosition')
+            begin.text = s.record_period[0].isoformat()
+            end = ET.SubElement(_, f'{ns}endPosition')
+            end.text = s.record_period[1].isoformat()
+        elif s.record_time is not None:
+            e_record_time = ET.SubElement(e_md, f'{ns}recordTime')
+            _ = ET.SubElement(e_record_time, f'{ns}TimeInstant')
+            begin = ET.SubElement(_, f'{ns}timePosition')
+    else:
+        if s.record_time is not None:
+            comment += f"Record time: {s.record_time.isoformat()}\n"
+        if s.record_period is not None and s.record_period[0] is not None and s.record_period[1] is not None:
+            comment += f"Record period: {s.record_period[0].isoformat()}-{s.record_period[1].isoformat()}\n"
 
     for elem in additional_metadata:
         value = elem['value']
+        key = elem['key']
+
         # None values
         if value is None:
             continue
@@ -519,6 +548,8 @@ def _gen_common_metadata(e, s, config={}, additional_metadata = [], name='metaDa
             if 'default_value' in elem:
                 value = elem['default_value']
             else:  # Invalid value and no default value
+                logging.error(f'Value {value} not accepted in CAAML format for key {key}. '
+                              'May generate an invalid CAAML file.')
                 continue
         if 'factor' in elem:
             value = value * elem['factor']
@@ -528,7 +559,6 @@ def _gen_common_metadata(e, s, config={}, additional_metadata = [], name='metaDa
             value = str(value)
 
         # Write the metadata
-        key = elem['key']
         _ = ET.SubElement(e_md, f'{ns}{key}',
                           attrib=elem['attrib'] if 'attrib' in elem and elem['attrib'] is not None else {})
         _.text = value
@@ -635,7 +665,7 @@ def _insert_density_profile(e_r, s_p, config):
         e_p, s_p, config=config,
         name = 'densityMetaData',
         additional_metadata = [
-            {'value': s_p.method_of_measurement, 'default_value': 'Other',
+            {'value': s_p.method_of_measurement, 'default_value': 'other',
              'values': _density_mom[version] if version in _density_mom else None,
              'key': 'methodOfMeas'},
             {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
@@ -644,7 +674,7 @@ def _insert_density_profile(e_r, s_p, config):
             {'value': s_p.probed_volume, 'key': 'probeVolume', 'factor': 1e6, 'attrib': {'uom': 'cm3'}},
             {'value': s_p.probed_diameter, 'key': 'probeDiameter', 'factor': 100, 'attrib': {'uom': 'cm'}},
             {'value': s_p.probed_length, 'key': 'probeLength', 'factor': 100, 'attrib': {'uom': 'cm'}},
-            {'value': s_p.probed_thickness, 'key': 'probeThickness', 'factor': 100, 'attrib': {'uom': 'cm'}}, ])
+            {'value': s_p.probed_thickness, 'key': 'probedThickness', 'factor': 100, 'attrib': {'uom': 'cm'}}, ])
 
     # Loop layers
     for _, layer in s_p.data.iterrows():
@@ -701,3 +731,384 @@ def _insert_temperature_profile(e_r, s_p, config):
         if 'quality' in layer and layer.quality is not None and version >= '6.0.6':
             _ = ET.SubElement(e_layer, f'{ns}qualityOfMeas')
             _.text = layer.quality
+
+
+_lwc_mom = {'6.0.5': ['Denoth Probe', 'Snow Fork', 'other']}
+
+
+def _insert_lwc_profile(e_r, s_p, config):
+    if s_p is None:
+        return
+
+    ns = config['ns']
+    profile_depth = config['profile_depth']
+    version = config['version']
+
+    e_p = ET.SubElement(e_r, 'lwcProfile',
+                        attrib=_gen_common_attrib(s_p, config=config))
+
+    if s_p.profile_nr is not None:
+        _ = ET.SubElement(e_p, f'{ns}profileNr')
+        _.text = str(s_p.profile_nr)
+
+    e_md = _gen_common_metadata(
+        e_p, s_p, config=config,
+        name = 'lwcMetaData',
+        additional_metadata = [
+            {'value': s_p.method_of_measurement, 'default_value': 'other',
+             'values': _lwc_mom[version] if version in _lwc_mom else None,
+             'key': 'methodOfMeas'},
+            {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
+             'key': 'qualityOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': '% by Vol'}},
+            {'value': s_p.probed_thickness, 'key': 'probedThickness', 'factor': 100, 'attrib': {'uom': 'cm'}}, ])
+
+    # Loop layers
+    for _, layer in s_p.data.iterrows():
+        e_layer = ET.SubElement(e_p, f'{ns}Layer')
+        _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+        _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
+        if not np.isnan(layer.thickness):
+            _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
+            _.text = "{:.12g}".format(layer.thickness * 100)
+        attrib = {'uom': '% by Vol'}
+        if 'uncertainty' in layer and not np.isnan(layer.uncertainty) and version >= '6.0.6':
+            attrib['uncertainty'] = "{:.12g}".format(layer.uncertainty)
+        if 'quality' in layer and layer.quality is not None and version >= '6.0.6':
+            attrib['quality'] = layer.quality
+        _ = ET.SubElement(e_layer, f'{ns}lwc', attrib=attrib)
+        _.text = "{:.12g}".format(layer.lwc)
+
+
+_strength_mom = {'6.0.5': ['Shear Frame', 'other']}
+
+
+def _insert_strength_profile(e_r, s_p, config):
+    if s_p is None:
+        return
+
+    ns = config['ns']
+    profile_depth = config['profile_depth']
+    version = config['version']
+
+    e_p = ET.SubElement(e_r, 'strengthProfile',
+                        attrib=_gen_common_attrib(s_p, config=config))
+
+    if s_p.profile_nr is not None:
+        _ = ET.SubElement(e_p, f'{ns}profileNr')
+        _.text = str(s_p.profile_nr)
+
+    e_md = _gen_common_metadata(
+        e_p, s_p, config=config,
+        name = 'strengthMetaData',
+        additional_metadata = [
+            {'value': s_p.strength_type, 'key': 'strengthType', 'values': ['compressive', 'tensile', 'shear']},
+            {'value': s_p.method_of_measurement, 'default_value': 'other',
+             'values': _strength_mom[version] if version in _strength_mom else None,
+             'key': 'methodOfMeas'},
+            {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
+             'key': 'qualityOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'Nm-2'}},
+            {'value': s_p.probed_area, 'key': 'probedArea', 'factor': 1e4, 'attrib': {'uom': 'cm2'}}, ])
+
+    # Loop layers
+    for _, layer in s_p.data.iterrows():
+        e_layer = ET.SubElement(e_p, f'{ns}Layer')
+        _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+        _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
+        if not np.isnan(layer.thickness):
+            _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
+            _.text = "{:.12g}".format(layer.thickness * 100)
+        attrib = {'uom': 'Nm-2'}
+        if 'uncertainty' in layer and not np.isnan(layer.uncertainty) and version >= '6.0.6':
+            attrib['uncertainty'] = "{:.12g}".format(layer.uncertainty)
+        if 'quality' in layer and layer.quality is not None and version >= '6.0.6':
+            attrib['quality'] = layer.quality
+        _ = ET.SubElement(e_layer, f'{ns}strengthValue', attrib=attrib)
+        _.text = "{:.12g}".format(layer.strength)
+        if 'fracture_character' in layer and layer.fracture_character is not None:
+            _ = ET.SubElement(e_layer, f'{ns}fractureCharacter')
+            _.text = layer.fracture_character
+
+
+_impurity_mom = {'6.0.5': ['other']}
+_impurity_type = {'6.0.5': ['Black Carbon', 'Dust', 'Isotopes']}
+
+
+def _insert_impurity_profile(e_r, s_p, config):
+    if s_p is None:
+        return
+
+    ns = config['ns']
+    profile_depth = config['profile_depth']
+    version = config['version']
+
+    e_p = ET.SubElement(e_r, 'impurityProfile',
+                        attrib=_gen_common_attrib(s_p, config=config))
+
+    if s_p.profile_nr is not None:
+        _ = ET.SubElement(e_p, f'{ns}profileNr')
+        _.text = str(s_p.profile_nr)
+
+    e_md = _gen_common_metadata(
+        e_p, s_p, config=config,
+        name = 'impurityMetaData',
+        additional_metadata = [
+            {'value': s_p.method_of_measurement, 'default_value': 'other',
+             'values': _impurity_mom[version] if version in _impurity_mom else None,
+             'key': 'methodOfMeas'},
+            {'value': s_p.impurity_type, 'default_value': 'other',
+             'values': _impurity_type[version] if version in _impurity_type else None,
+             'key': 'impurity'},
+            {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
+             'key': 'qualityOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': ''}},
+            {'value': s_p.probed_volume, 'key': 'probedVolume', 'factor': 1e6, 'attrib': {'uom': 'cm3'}},
+            {'value': s_p.probed_diameter, 'key': 'probedDiameter', 'factor': 100, 'attrib': {'uom': 'cm'}},
+            {'value': s_p.probed_length, 'key': 'probedLength', 'factor': 100, 'attrib': {'uom': 'cm'}},
+            {'value': s_p.probed_thickness, 'key': 'probedThickness', 'factor': 100, 'attrib': {'uom': 'cm'}}, ])
+
+    # Loop layers
+    for _, layer in s_p.data.iterrows():
+        if (('mass_fraction' in layer and not np.isnan(layer.mass_fraction)) or
+            ('volume_fraction' in layer and not np.isnan(layer.volume_fraction))):
+            e_layer = ET.SubElement(e_p, f'{ns}Layer')
+            _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+            _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
+            if not np.isnan(layer.thickness):
+                _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
+                _.text = "{:.12g}".format(layer.thickness * 100)
+            attrib = {'uom': ''}
+            if 'uncertainty' in layer and not np.isnan(layer.uncertainty) and version >= '6.0.6':
+                attrib['uncertainty'] = "{:.12g}".format(layer.uncertainty)
+            if 'quality' in layer and layer.quality is not None and version >= '6.0.6':
+                attrib['quality'] = layer.quality
+            if 'mass_fraction' in layer and not np.isnan(layer.mass_fraction):
+                _ = ET.SubElement(e_layer, f'{ns}massFraction', attrib=attrib)
+                _.text = "{:.12g}".format(layer.mass_fraction)
+            else:
+                _ = ET.SubElement(e_layer, f'{ns}volumeFraction', attrib=attrib)
+                _.text = "{:.12g}".format(layer.volume_fraction)
+
+
+def _insert_otherscalar_profile(e_r, s_p, config):
+    if s_p is None:
+        return
+
+    ns = config['ns']
+    profile_depth = config['profile_depth']
+    version = config['version']
+
+    if version < '6.0.6':
+        logging.warning(f'Other scalar profile not stored in CAAML XML v{version}.')
+        return
+
+    e_p = ET.SubElement(e_r, 'otherScalarProfile',
+                        attrib=_gen_common_attrib(s_p, config=config))
+
+    if s_p.profile_nr is not None:
+        _ = ET.SubElement(e_p, f'{ns}profileNr')
+        _.text = str(s_p.profile_nr)
+
+    e_md = _gen_common_metadata(
+        e_p, s_p, config=config,
+        name = 'otherScalarMetaData',
+        additional_metadata = [
+            {'value': s_p.method_of_measurement, 'key': 'methodOfMeas'},
+            {'value': s_p.parameter, 'key': 'parameter'},
+            {'value': s_p.unit, 'key': 'uom'},
+            {'value': s_p.quality_of_measurement, 'key': 'qualityOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas'}, ])
+
+    # Loop layers
+    for _, layer in s_p.data.iterrows():
+        e_layer = ET.SubElement(e_p, f'{ns}Layer')
+        _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+        _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
+        if not np.isnan(layer.thickness):
+            _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
+            _.text = "{:.12g}".format(layer.thickness * 100)
+        attrib = {}
+        if 'uncertainty' in layer and not np.isnan(layer.uncertainty):
+            attrib['uncertainty'] = "{:.12g}".format(layer.uncertainty)
+        if 'quality' in layer and layer.quality is not None:
+            attrib['quality'] = layer.quality
+        _ = ET.SubElement(e_layer, f'{ns}value', attrib=attrib)
+        _.text = "{:.12g}".format(layer.data)
+
+
+def _insert_othervectorial_profile(e_r, s_p, config):
+    if s_p is None:
+        return
+
+    ns = config['ns']
+    profile_depth = config['profile_depth']
+    version = config['version']
+
+    if version < '6.0.6':
+        logging.warning(f'Other vectorial profile not stored in CAAML XML v{version}.')
+        return
+
+    e_p = ET.SubElement(e_r, 'othervectorialProfile',
+                        attrib=_gen_common_attrib(s_p, config=config))
+
+    if s_p.profile_nr is not None:
+        _ = ET.SubElement(e_p, f'{ns}profileNr')
+        _.text = str(s_p.profile_nr)
+
+    e_md = _gen_common_metadata(
+        e_p, s_p, config=config,
+        name = 'otherVectorialMetaData',
+        additional_metadata = [
+            {'value': s_p.method_of_measurement, 'key': 'methodOfMeas'},
+            {'value': s_p.parameter, 'key': 'parameter'},
+            {'value': s_p.rank, 'key': 'rank'},
+            {'value': s_p.quality_of_measurement, 'key': 'qualityOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas'}, ])
+
+    # Loop layers
+    for _, layer in s_p.data.iterrows():
+        e_layer = ET.SubElement(e_p, f'{ns}Layer')
+        _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+        _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
+        if not np.isnan(layer.thickness):
+            _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
+            _.text = "{:.12g}".format(layer.thickness * 100)
+        attrib = {}
+        if 'uncertainty' in layer and not np.isnan(layer.uncertainty):
+            attrib['uncertainty'] = "{:.12g}".format(layer.uncertainty)
+        if 'quality' in layer and layer.quality is not None:
+            attrib['quality'] = layer.quality
+        _ = ET.SubElement(e_layer, f'{ns}value', attrib=attrib)
+        _.text = ' '.join(["{:.12g}".format(e) for e in layer.data])
+
+
+_ssa_mom = {'6.0.5': ['Ice Cube', 'other']}
+
+
+def _insert_ssa_profile(e_r, s_p, config):
+    if s_p is None:
+        return
+
+    ns = config['ns']
+    profile_depth = config['profile_depth']
+    version = config['version']
+
+    e_p = ET.SubElement(e_r, 'specSurfAreaProfile',
+                        attrib=_gen_common_attrib(s_p, config=config))
+
+    if s_p.profile_nr is not None:
+        _ = ET.SubElement(e_p, f'{ns}profileNr')
+        _.text = str(s_p.profile_nr)
+
+    e_md = _gen_common_metadata(
+        e_p, s_p, config=config,
+        name = 'specSurfAreaMetaData',
+        additional_metadata = [
+            {'value': s_p.method_of_measurement, 'default_value': 'other',
+             'values': _ssa_mom[version] if version in _ssa_mom else None,
+             'key': 'methodOfMeas'},
+            {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
+             'key': 'qualityOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'm2kg-1'}},
+            {'value': s_p.probed_thickness, 'key': 'probedThickness', 'factor': 100, 'attrib': {'uom': 'cm'}}, ])
+
+    # Loop layers
+    import snowprofile.profiles
+    if isinstance(s_p, snowprofile.profiles.SSAProfile):
+        for _, layer in s_p.data.iterrows():
+            e_layer = ET.SubElement(e_p, f'{ns}Layer')
+            _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+            _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
+            if not np.isnan(layer.thickness):
+                _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
+                _.text = "{:.12g}".format(layer.thickness * 100)
+            attrib = {'uom': 'm2kg-1'}
+            if 'uncertainty' in layer and not np.isnan(layer.uncertainty) and version >= '6.0.6':
+                attrib['uncertainty'] = "{:.12g}".format(layer.uncertainty)
+            if 'quality' in layer and layer.quality is not None and version >= '6.0.6':
+                attrib['quality'] = layer.quality
+            _ = ET.SubElement(e_layer, f'{ns}specSurfArea', attrib=attrib)
+            _.text = "{:.12g}".format(layer.ssa)
+    elif isinstance(s_p, snowprofile.profiles.SSAPointProfile):
+        e_mc = ET.SubElement(e_p, f'{ns}MeasurementComponents', attrib={
+            'uomDepth': 'cm',
+            'uomSpecSurfArea': 'm2kg-1'})
+        _ = ET.SubElement(e_mc, f'{ns}depth')
+        _.value = 'template'
+        _ = ET.SubElement(e_mc, f'{ns}specSurfArea')
+        _.value = 'template'
+        e_m = ET.SubElement(e_p, f'{ns}Measurements')
+        e_m = ET.SubElement(e_m, f'{ns}tupleList')
+        e_m.text = ' '.join([f'{layer.height:.12g},{layer.ssa:.12g}' for _, layer in s_p.data.iterrows()])
+
+
+_hardness_mom = {'6.0.5': ['SnowMicroPen', 'Ram Sonde', 'Push-Pull Gauge', 'other']}
+
+
+def _insert_hardness_profile(e_r, s_p, config):
+    if s_p is None:
+        return
+
+    ns = config['ns']
+    profile_depth = config['profile_depth']
+    version = config['version']
+
+    e_p = ET.SubElement(e_r, 'hardnessProfile',
+                        attrib=_gen_common_attrib(s_p, config=config))
+    # TODO: Add uomWeightHammer uomWeightTube uomDropHeight  <10-03-25, Léo Viallon-Galinier> #
+
+    if s_p.profile_nr is not None:
+        _ = ET.SubElement(e_p, f'{ns}profileNr')
+        _.text = str(s_p.profile_nr)
+
+    e_md = _gen_common_metadata(
+        e_p, s_p, config=config,
+        name = 'hardnessMetaData',
+        additional_metadata = [
+            {'value': s_p.method_of_measurement, 'default_value': 'other',
+             'values': _hardness_mom[version] if version in _hardness_mom else None,
+             'key': 'methodOfMeas'},
+            {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
+             'key': 'qualityOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'N'}},
+            {'value': s_p.surface_of_indentation, 'key': 'surfOfIndentation', 'factor': 1000, 'attrib': {'uom': 'cm2'}},
+            {'value': s_p.penetration_speed, 'key': 'penetrationSpeed', 'attrib': {'uom': 'ms-1'},
+             'min_version': '6.0.6', 'comment_title': 'Penetration speed'}, ])
+
+    # Loop layers
+    import snowprofile.profiles
+    if isinstance(s_p, snowprofile.profiles.HardnessProfile):
+        for _, layer in s_p.data.iterrows():
+            e_layer = ET.SubElement(e_p, f'{ns}Layer')
+            _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+            _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
+            if not np.isnan(layer.thickness):
+                _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
+                _.text = "{:.12g}".format(layer.thickness * 100)
+            attrib = {'uom': 'N'}
+            _ = ET.SubElement(e_layer, f'{ns}hardness', attrib=attrib)
+            _.text = "{:.12g}".format(layer.hardness)
+            if 'weight_hammer' in layer and not np.isnan(layer.weight_hammer):
+                _ = ET.SubElement(e_layer, f'{ns}weightHammer')
+                _.text = "{:.12g}".format(layer.weight_hammer)
+            if 'weight_tube' in layer and not np.isnan(layer.weight_tube):
+                _ = ET.SubElement(e_layer, f'{ns}weightTube')
+                _.text = "{:.12g}".format(layer.weight_tube)
+            if 'n_drops' in layer and not np.isnan(layer.n_drops):
+                _ = ET.SubElement(e_layer, f'{ns}nDrops')
+                _.text = "{:.12g}".format(layer.weight_hammer)
+            if 'drop_height' in layer and not np.isnan(layer.drop_height):
+                _ = ET.SubElement(e_layer, f'{ns}dropHeight')
+                _.text = "{:.12g}".format(layer.weight_hammer)
+    elif isinstance(s_p, snowprofile.profiles.HardnessPointProfile):
+        e_mc = ET.SubElement(e_p, f'{ns}MeasurementComponents', attrib={
+            'uomDepth': 'cm',
+            'uomHardness': 'N'})
+        _ = ET.SubElement(e_mc, f'{ns}depth')
+        _.value = 'template'
+        _ = ET.SubElement(e_mc, f'{ns}penRes')
+        _.value = 'template'
+        e_m = ET.SubElement(e_p, f'{ns}Measurements')
+        e_m = ET.SubElement(e_m, f'{ns}tupleList')
+        e_m.text = ' '.join([f'{layer.height:.12g},{layer.hardness:.12g}' for _, layer in s_p.data.iterrows()])
