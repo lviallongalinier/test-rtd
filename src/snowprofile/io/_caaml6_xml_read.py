@@ -81,7 +81,7 @@ def read_caaml6_xml(filename):
 
     # - Observer
     observer = Observer(
-        source_id=root.find(f'{nss}Operation/'),
+        source_id=_search_gml_id(root.find(f'{nss}srcRef/{nss}Operation')),
         source_name=_parse_str(root, f'{nss}srcRef/{nss}Operation/{nss}name'),
         source_comment=_parse_str(root, f'{nss}srcRef/{nss}Operation/{nss}metaData/{nss}comment'),
         source_additional_data = _parse_additional_data(root.find(f'{nss}srcRef/{nss}Operation/{nss}customData')))
@@ -104,15 +104,16 @@ def read_caaml6_xml(filename):
         id=_search_gml_id(loc),
         name=_parse_str(root, f'{nss}locRef/{nss}name'),
         point_type=_parse_str(root, f'{nss}locRef/{nss}obsPointSubType'),
-        aspect=_parse_numeric(root, f'{nss}locRef/{nss}validAspect',
+        aspect=_parse_numeric(root, f'{nss}locRef/{nss}validAspect/{nss}AspectPosition/{nss}position',
                               attribution_table={'N': 0, 'NE': 45, 'E': 90, 'SE': 135, 'S': 180,
                                                  'SW': 225, 'W': 270, 'NW': 315, 'n/a': None}),
-        elevation=_parse_numeric(root, f'{nss}locRef/{nss}validElevation'),
-        slope=_parse_numeric(root, f'{nss}locRef/{nss}validSlopeAngle'),
+        elevation=_parse_numeric(root, f'{nss}locRef/{nss}validElevation/{nss}ElevationPosition/{nss}position'),
+        slope=_parse_numeric(root, f'{nss}locRef/{nss}validSlopeAngle/{nss}SlopeAnglePosition/{nss}position'),
         latitude=lat,
         longitude = lon,
         country=_parse_str(root, f'{nss}locRef/{nss}country'),
         region=_parse_str(root, f'{nss}locRef/{nss}region'),
+        comment=_parse_str(root, f'{nss}locRef/{nss}metaData/{nss}comment'),
         additional_data=_parse_additional_data(root.find(f'{nss}locRef/{nss}customData')))
 
     # - Environment
@@ -137,14 +138,14 @@ def read_caaml6_xml(filename):
     # - Weather
     base = f'{nss}snowProfileResultsOf/{nss}SnowProfileMeasurements/{nss}weatherCond'
     weather = Weather(
-        cloudiness=_parse_str(root, f'{base}/{nss}skiCond'),
+        cloudiness=_parse_str(root, f'{base}/{nss}skyCond'),
         precipitation=_parse_str(root, f'{base}/{nss}precipTI'),
         air_temperature=_parse_numeric(root, f'{base}/{nss}airTempPres'),
         wind_speed=_parse_numeric(
             root, f'{base}/{nss}windSpd',
             attribution_table={'C': 0, 'L': 13.5, 'M': 34.2, 'S': 51.3, 'X': 72}),
         wind_direction=_parse_numeric(
-            root, f'{base}/{nss}windDir',
+            root, f'{base}/{nss}windDir/{nss}AspectPosition/{nss}position',
             attribution_table={'N': 0, 'NE': 45, 'E': 90, 'SE': 135, 'S': 180,
                                'SW': 225, 'W': 270, 'NW': 315, 'n/a': None}),
         air_temperature_measurement_height=_parse_numeric(
@@ -266,7 +267,7 @@ def read_caaml6_xml(filename):
         weather=weather,
         surface_conditions=surface_conditions,
         application=_parse_str(root, f'{nss}application'),
-        application_version=_parse_str(root, f'{nss}applicaationVersion'),
+        application_version=_parse_str(root, f'{nss}applicationVersion'),
         profile_depth=profile_depth,
         profile_depth_std=_parse_numeric(
             root,
@@ -1147,13 +1148,14 @@ def _parse_stability_tests(element, nss='', profile_depth=0):
     for elementtest in element.findall(f'{nss}PropSawTest'):
         from snowprofile.stability_tests import PSTStabilityTest
         e = elementtest.find(f'{nss}failedOn')
-        s = PSTStabilityTest(
-            **_parse_generic_stability_test_fields(elementtest, nss=nss, profile_depth=profile_depth),
-            **_parse_generic_stability_test_result_fields(e, nss=nss, profile_depth=profile_depth),
-            column_length = _parse_numeric(e, f'{nss}Results/{nss}columnLength', factor=0.01),
-            cut_length = _parse_numeric(e, f'{nss}Results/{nss}cutLength', factor=0.01),
-            propagation = _parse_str(e, f'{nss}Results/{nss}fracturePropagation'))
-        r.append(s)
+        if e is not None:
+            s = PSTStabilityTest(
+                **_parse_generic_stability_test_fields(elementtest, nss=nss, profile_depth=profile_depth),
+                **_parse_generic_stability_test_result_fields(e, nss=nss, profile_depth=profile_depth),
+                column_length = _parse_numeric(e, f'{nss}Results/{nss}columnLength', factor=0.01),
+                cut_length = _parse_numeric(e, f'{nss}Results/{nss}cutLength', factor=0.01),
+                propagation = _parse_str(e, f'{nss}Results/{nss}fracturePropagation'))
+            r.append(s)
 
     # Shear frame tests
     for elementtest in element.findall(f'{nss}ShearFrameTest'):

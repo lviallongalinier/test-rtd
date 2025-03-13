@@ -95,11 +95,11 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         begin.text = datetime.datetime.now().isoformat()
 
     if snowprofile.time.report_time is not None:
-        _ = ET.SubElement(root, f'{ns}dateTimeReport')
+        _ = ET.SubElement(time, f'{ns}dateTimeReport')
         _.text = snowprofile.time.report_time.isoformat()
 
     if snowprofile.time.last_edition_time is not None:
-        _ = ET.SubElement(root, f'{ns}dateTimeLastEdit')
+        _ = ET.SubElement(time, f'{ns}dateTimeLastEdit')
         _.text = snowprofile.time.last_edition_time.isoformat()
 
     if snowprofile.time.comment is not None:
@@ -107,7 +107,7 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _ = ET.SubElement(_, f'{ns}comment')
         _.text = snowprofile.time.comment
 
-    _append_additional_data(root, snowprofile.time.additional_data, ns=ns)
+    _append_additional_data(time, snowprofile.time.additional_data, ns=ns)
 
     # - srcRef
     src = ET.SubElement(root, f'{ns}srcRef')
@@ -153,8 +153,8 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _.text = loc.comment
     name = ET.SubElement(src, f'{ns}name')
     name.text = loc.name
+    _ = ET.SubElement(src, f'{ns}obsPointSubType')
     if loc.point_type is not None:
-        _ = ET.SubElement(src, f'{ns}obsPointSubType')
         _.text = loc.point_type
     if loc.elevation is not None:
         _ = ET.SubElement(src, f'{ns}validElevation')
@@ -197,7 +197,7 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
 
     # snowProfileResultsOf
     e_r = ET.SubElement(root, f'{ns}snowProfileResultsOf')
-    e_r = ET.SubElement(e_r, f'{ns}SnowProfileMeasurements', attrib={f'{ns}dir': 'top down'})
+    e_r = ET.SubElement(e_r, f'{ns}SnowProfileMeasurements', attrib={'dir': 'top down'})
 
     if snowprofile.profile_comment is not None:
         _ = ET.SubElement(e_r, f'{ns}metaData')
@@ -210,7 +210,7 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     #     _.text = str(float(snowprofile.profile_depth) * 100)
 
     # - Weather
-    e_weather = ET.SubElement(e_r, f'{ns}weathercond')
+    e_weather = ET.SubElement(e_r, f'{ns}weatherCond')
     s_weather = snowprofile.weather
 
     e_weather_metadata = ET.SubElement(e_weather, f'{ns}metaData')
@@ -241,15 +241,15 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _.text = s_weather.precipitation
     if s_weather.air_temperature is not None:
         _ = ET.SubElement(e_weather, f'{ns}airTempPres', attrib={'uom': 'degC'})
-        _.text = str(s_weather.air_temperature)
+        _.text = "{:.10g}".format(s_weather.air_temperature)
     if s_weather.wind_speed is not None:
         _ = ET.SubElement(e_weather, f'{ns}windSpd', attrib={'uom': 'ms-1'})
-        _.text = str(s_weather.wind_speed)
+        _.text = "{:.10g}".format(s_weather.wind_speed)
     if s_weather.wind_direction is not None:
         _ = ET.SubElement(e_weather, f'{ns}windDir')
         _ = ET.SubElement(_, f'{ns}AspectPosition')
         _ = ET.SubElement(_, f'{ns}position')
-        _.text = str(int(s_weather.wind_speed))
+        _.text = str(int(s_weather.wind_direction))
     _append_additional_data(e_weather, s_weather.additional_data, ns=ns)
 
     # - Snowpack
@@ -259,20 +259,20 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         hsc = ET.SubElement(hs, f'{ns}Components')
         if snowprofile.profile_depth is not None:
             _ = ET.SubElement(hsc, f'{ns}height', attrib={'uom': 'cm'})
-            _.text = str(snowprofile.profile_depth * 100)
+            _.text = "{:.12g}".format(snowprofile.profile_depth * 100)
         if snowprofile.profile_swe is not None:
             _ = ET.SubElement(hsc, f'{ns}waterEquivalent', attrib={'uom': 'kgm-2'})
-            _.text = str(snowprofile.profile_swe)
+            _.text = "{:.12g}".format(snowprofile.profile_swe)
     if (snowprofile.profile_depth_std is not None or snowprofile.profile_swe_std is not None):
         if version >= "6.0.6":
             hs = ET.SubElement(e_snowpack, f'{ns}hSVariability')
             hsc = ET.SubElement(hs, f'{ns}Components')
             if snowprofile.profile_depth_std is not None:
                 _ = ET.SubElement(hsc, f'{ns}height', attrib={'uom': 'cm'})
-                _.text = str(snowprofile.profile_depth_std * 100)
+                _.text = "{:.12g}".format(snowprofile.profile_depth_std * 100)
             if snowprofile.profile_swe_std is not None:
                 _ = ET.SubElement(hsc, f'{ns}waterEquivalent', attrib={'uom': 'kgm-2'})
-                _.text = str(snowprofile.profile_swe_std)
+                _.text = "{:.12g}".format(snowprofile.profile_swe_std)
         else:
             logging.warning('Caaml 6 < 6.0.6 does not support profile_depth_std and profile_swe_std.')
     if snowprofile.new_snow_24_depth is not None or snowprofile.new_snow_24_swe is not None:
@@ -280,19 +280,19 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         hsc = ET.SubElement(hs, f'{ns}Components')
         if snowprofile.new_snow_24_depth is not None:
             _ = ET.SubElement(hsc, f'{ns}height', attrib={'uom': 'cm'})
-            _.text = str(snowprofile.new_snow_24_depth * 100)
+            _.text = "{:.12g}".format(snowprofile.new_snow_24_depth * 100)
         if snowprofile.new_snow_24_swe is not None:
             _ = ET.SubElement(hsc, f'{ns}waterEquivalent', attrib={'uom': 'kgm-2'})
-            _.text = str(snowprofile.new_snow_24_swe)
+            _.text = "{:.12g}".format(snowprofile.new_snow_24_swe)
     if (snowprofile.new_snow_24_depth_std is not None or snowprofile.new_snow_24_swe_std is not None):
         hs = ET.SubElement(e_snowpack, f'{ns}hIN')
         hsc = ET.SubElement(hs, f'{ns}Components')
         if snowprofile.new_snow_24_depth_std is not None:
             _ = ET.SubElement(hsc, f'{ns}height', attrib={'uom': 'cm'})
-            _.text = str(snowprofile.new_snow_24_depth_std * 100)
+            _.text = "{:.12g}".format(snowprofile.new_snow_24_depth_std * 100)
         if snowprofile.new_snow_24_swe_std is not None:
             _ = ET.SubElement(hsc, f'{ns}waterEquivalent', attrib={'uom': 'kgm-2'})
-            _.text = str(snowprofile.new_snow_24_swe_std)
+            _.text = "{:.12g}".format(snowprofile.new_snow_24_swe_std)
     if snowprofile.snow_transport is not None:
         if version >= "6.0.6":
             _ = ET.SubElement(e_snowpack, f'{ns}snowTransport')
@@ -302,7 +302,7 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     if snowprofile.snow_transport_occurence_24 is not None:
         if version >= "6.0.6":
             _ = ET.SubElement(e_snowpack, f'{ns}snowTransportOccurence24')
-            _.text = str(snowprofile.snow_transport_occurence_24)
+            _.text = "{:.12g}".format(snowprofile.snow_transport_occurence_24)
         else:
             logging.warning('Caaml 6 < 6.0.6 does not support snow transport data.')
 
@@ -316,13 +316,13 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _.text = s_surf.comment
     if s_surf.penetration_ram is not None:
         _ = ET.SubElement(e_surf, f'{ns}penetrationRam', attrib={'uom': 'cm'})
-        _.text = str(float(s_surf.penetration_ram) * 100)
+        _.text = "{:.12g}".format(s_surf.penetration_ram * 100)
     if s_surf.penetration_foot is not None:
         _ = ET.SubElement(e_surf, f'{ns}penetrationFoot', attrib={'uom': 'cm'})
-        _.text = str(float(s_surf.penetration_foot) * 100)
+        _.text = "{:.12g}".format(s_surf.penetration_foot * 100)
     if s_surf.penetration_ski is not None:
         _ = ET.SubElement(e_surf, f'{ns}penetrationSki', attrib={'uom': 'cm'})
-        _.text = str(float(s_surf.penetration_ski) * 100)
+        _.text = "{:.12g}".format(s_surf.penetration_ski * 100)
 
     _ = ET.SubElement(e_surf, f'{ns}surfFeatures')
     e_surff = ET.SubElement(_, f'{ns}Components')
@@ -350,14 +350,14 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _ = ET.SubElement(e_surff, f'{ns}validAmplitude')
         _ = ET.SubElement(_, f'{ns}AmplitudePosition', attrib={'uom': 'cm'})
         _ = ET.SubElement(_, f'{ns}position')
-        _.text = str(float(s_surf.surface_features_amplitude) * 100)
+        _.text = "{:.12g}".format(s_surf.surface_features_amplitude * 100)
     elif s_surf.surface_features_amplitude_min is not None and s_surf.surface_features_amplitude_max is not None:
         _ = ET.SubElement(e_surff, f'{ns}validAmplitude')
         _r = ET.SubElement(_, f'{ns}AmplitudeRange', attrib={'uom': 'cm'})
         _ = ET.SubElement(_r, f'{ns}beginPosition')
-        _.text = str(float(s_surf.surface_features_amplitude_min) * 100)
+        _.text = "{:.12g}".format(s_surf.surface_features_amplitude_min * 100)
         _ = ET.SubElement(_r, f'{ns}endPosition')
-        _.text = str(float(s_surf.surface_features_amplitude_max) * 100)
+        _.text = "{:.12g}".format(s_surf.surface_features_amplitude_max * 100)
 
     if s_surf.surface_features_wavelength is not None:
         if s_surf.surface_features_wavelength_min is not None or s_surf.surface_features_wavelength_max is not None:
@@ -365,14 +365,14 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _ = ET.SubElement(e_surff, f'{ns}validWavelength')
         _ = ET.SubElement(_, f'{ns}WavelengthPosition', attrib={'uom': 'm'})
         _ = ET.SubElement(_, f'{ns}position')
-        _.text = str(float(s_surf.surface_features_wavelength))
+        _.text = "{:.12g}".format(s_surf.surface_features_wavelength)
     elif s_surf.surface_features_wavelength_min is not None and s_surf.surface_features_wavelength_max is not None:
         _ = ET.SubElement(e_surff, f'{ns}validWavelength')
         _r = ET.SubElement(_, f'{ns}WavelengthRange', attrib={'uom': 'm'})
         _ = ET.SubElement(_r, f'{ns}beginPosition')
-        _.text = str(float(s_surf.surface_features_wavelength_min))
+        _.text = "{:.12g}".format(s_surf.surface_features_wavelength_min)
         _ = ET.SubElement(_r, f'{ns}endPosition')
-        _.text = str(float(s_surf.surface_features_wavelength_max))
+        _.text = "{:.12g}".format(s_surf.surface_features_wavelength_max)
 
     if s_surf.surface_features_aspect is not None:
         _ = ET.SubElement(e_surff, f'{ns}validAspect')
@@ -418,7 +418,6 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     _append_additional_data(e_surf, s_surf.additional_data)
 
     # - Profiles
-    # TODO: tbd  <24-02-25, Léo Viallon-Galinier> #
     _insert_stratigrpahy_profile(e_r, snowprofile.stratigraphy_profile, config=config)
 
     if version >= "6.0.6":
@@ -455,9 +454,6 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         e_stb = ET.SubElement(e_r, f'{ns}stbTests')
         for stbt in snowprofile.stability_tests:
             _insert_stb_test(e_stb, stbt, config=config)
-
-    # TODO:
-    # - Stb Tests
 
     # - Additional data
     _append_additional_data(e_r, snowprofile.profile_additional_data)
@@ -608,8 +604,8 @@ def _insert_stratigrpahy_profile(e_r, s_strat, config):
             _ = ET.SubElement(e_layer, f'{ns}grainFormSecondary')
             _.text = layer.grain_2
         if layer.grain_size is not None:
-            _ = ET.SubElement(e_layer, f'{ns}grainSize')
-            _c = ET.SubElement(_, f'{ns}Components', attrib={'uom': 'mm'})
+            _ = ET.SubElement(e_layer, f'{ns}grainSize', attrib={'uom': 'mm'})
+            _c = ET.SubElement(_, f'{ns}Components')
             _ = ET.SubElement(_c, f'{ns}avg')
             _.text = "{:.12g}".format(layer.grain_size * 1e3)
             if 'grain_size_max' in layer and not np.isnan(layer.grain_size_max):
@@ -1060,8 +1056,11 @@ def _insert_hardness_profile(e_r, s_p, config):
     version = config['version']
 
     e_p = ET.SubElement(e_r, f'{ns}hardnessProfile',
-                        attrib=_gen_common_attrib(s_p, config=config))
-    # TODO: Add uomWeightHammer uomWeightTube uomDropHeight  <10-03-25, Léo Viallon-Galinier> #
+                        attrib={
+                            'uomWeightHammer': 'kg',
+                            'uomWeightTube': 'kg',
+                            'uomDropHeight': 'cm',
+                            **_gen_common_attrib(s_p, config=config)})
 
     if s_p.profile_nr is not None:
         _ = ET.SubElement(e_p, f'{ns}profileNr')
@@ -1102,10 +1101,10 @@ def _insert_hardness_profile(e_r, s_p, config):
                 _.text = "{:.12g}".format(layer.weight_tube)
             if 'n_drops' in layer and not np.isnan(layer.n_drops):
                 _ = ET.SubElement(e_layer, f'{ns}nDrops')
-                _.text = "{:.12g}".format(layer.weight_hammer)
+                _.text = "{:.12g}".format(layer.n_drops)
             if 'drop_height' in layer and not np.isnan(layer.drop_height):
                 _ = ET.SubElement(e_layer, f'{ns}dropHeight')
-                _.text = "{:.12g}".format(layer.weight_hammer)
+                _.text = "{:.12g}".format(layer.drop_height * 100)
     elif isinstance(s_p, snowprofile.profiles.HardnessPointProfile):
         e_mc = ET.SubElement(e_p, f'{ns}MeasurementComponents', attrib={
             'uomDepth': 'cm',
@@ -1208,6 +1207,7 @@ def _insert_stb_test(e_r, s_t, config):
     elif isinstance(s_t, snowprofile.stability_tests.PSTStabilityTest):
         e_t = ET.SubElement(e_r, f'{ns}PropSawTest',
                             attrib=_gen_common_attrib(s_t, config=config))
+        e_t = ET.SubElement(e_t, f'{ns}failedOn')
 
         e_resu = ET.SubElement(e_t, f'{ns}Results')
         # ECT result
@@ -1251,8 +1251,8 @@ def _stb_test_layer_details(e_fail, result, ns='', profile_depth=0):
         _ = ET.SubElement(e_layer, f'{ns}grainFormSecondary')
         _.text = result.grain_2
     if result.grain_size is not None:
-        _ = ET.SubElement(e_layer, f'{ns}grainSize')
-        _c = ET.SubElement(_, f'{ns}Components', attrib={'uom': 'mm'})
+        _ = ET.SubElement(e_layer, f'{ns}grainSize', attrib={'uom': 'mm'})
+        _c = ET.SubElement(_, f'{ns}Components')
         _ = ET.SubElement(_c, f'{ns}avg')
         _.text = "{:.12g}".format(result.grain_size * 1e3)
         if 'grain_size_max' in result and not np.isnan(result.grain_size_max):

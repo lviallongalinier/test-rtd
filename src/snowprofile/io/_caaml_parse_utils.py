@@ -16,6 +16,9 @@ def _parse_str(root, path, clean=True, attribute=None, attribution_table=None):
     :param attribute: Parse the content of an attribute of the given element rather than the text content.
     :returns: Parsed string or None if not found
     """
+    if root is None:
+        return None
+
     if isinstance(path, list):
         for p in path:
             f = root.find(p)
@@ -74,6 +77,9 @@ def _parse_numeric_list(root, path, factor=1, attribute=None):
     :param attribute: Parse the content of an attribute of the given element rather than the text content.
     :returns: Parsed list of float or None if not found
     """
+    if root is None:
+        return None
+
     if isinstance(path, list):
         for p in path:
             f = root.find(p)
