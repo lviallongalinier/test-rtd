@@ -451,6 +451,11 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     for profile in snowprofile.hardness_profiles:
         _insert_hardness_profile(e_r, profile, config=config)
 
+    if len(snowprofile.stability_tests) > 0:
+        e_stb = ET.SubElement(e_r, f'{ns}stbTests')
+        for stbt in snowprofile.stability_tests:
+            _insert_stb_test(e_stb, stbt, config=config)
+
     # TODO:
     # - Stb Tests
 
@@ -476,9 +481,9 @@ def _gen_common_attrib(s, config={}):
     ns_gml = config['ns_gml']
     if s.id is not None:
         attrib[f'{ns_gml}id'] = config['_gen_id'](s.id)
-    if len(s.related_profiles) > 0:
+    if len(s.related_profiles) > 0 and config['version'] >= '6.0.6':
         attrib['relatedProfiles'] = ' '.join(s.related_profiles)
-    if s.name is not None:
+    if s.name is not None and config['version'] >= '6.0.6':
         attrib['name'] = ' '.join(s.name)
     return attrib
 
@@ -584,7 +589,7 @@ def _insert_stratigrpahy_profile(e_r, s_strat, config):
     ns = config['ns']
     profile_depth = config['profile_depth']
 
-    e_s = ET.SubElement(e_r, 'stratProfile',
+    e_s = ET.SubElement(e_r, f'{ns}stratProfile',
                         attrib=_gen_common_attrib(s_strat, config=config))
     e_md = _gen_common_metadata(e_s, s_strat, config=config, name='stratMetaData')
 
@@ -654,7 +659,7 @@ def _insert_density_profile(e_r, s_p, config):
     profile_depth = config['profile_depth']
     version = config['version']
 
-    e_p = ET.SubElement(e_r, 'densityProfile',
+    e_p = ET.SubElement(e_r, f'{ns}densityProfile',
                         attrib=_gen_common_attrib(s_p, config=config))
 
     if s_p.profile_nr is not None:
@@ -701,7 +706,7 @@ def _insert_temperature_profile(e_r, s_p, config):
     profile_depth = config['profile_depth']
     version = config['version']
 
-    e_p = ET.SubElement(e_r, 'tempProfile',
+    e_p = ET.SubElement(e_r, f'{ns}tempProfile',
                         attrib=_gen_common_attrib(s_p, config=config))
 
     if version > "6.0.6" and s_p.profile_nr is not None:
@@ -744,7 +749,7 @@ def _insert_lwc_profile(e_r, s_p, config):
     profile_depth = config['profile_depth']
     version = config['version']
 
-    e_p = ET.SubElement(e_r, 'lwcProfile',
+    e_p = ET.SubElement(e_r, f'{ns}lwcProfile',
                         attrib=_gen_common_attrib(s_p, config=config))
 
     if s_p.profile_nr is not None:
@@ -791,7 +796,7 @@ def _insert_strength_profile(e_r, s_p, config):
     profile_depth = config['profile_depth']
     version = config['version']
 
-    e_p = ET.SubElement(e_r, 'strengthProfile',
+    e_p = ET.SubElement(e_r, f'{ns}strengthProfile',
                         attrib=_gen_common_attrib(s_p, config=config))
 
     if s_p.profile_nr is not None:
@@ -843,7 +848,7 @@ def _insert_impurity_profile(e_r, s_p, config):
     profile_depth = config['profile_depth']
     version = config['version']
 
-    e_p = ET.SubElement(e_r, 'impurityProfile',
+    e_p = ET.SubElement(e_r, f'{ns}impurityProfile',
                         attrib=_gen_common_attrib(s_p, config=config))
 
     if s_p.profile_nr is not None:
@@ -903,7 +908,7 @@ def _insert_otherscalar_profile(e_r, s_p, config):
         logging.warning(f'Other scalar profile not stored in CAAML XML v{version}.')
         return
 
-    e_p = ET.SubElement(e_r, 'otherScalarProfile',
+    e_p = ET.SubElement(e_r, f'{ns}otherScalarProfile',
                         attrib=_gen_common_attrib(s_p, config=config))
 
     if s_p.profile_nr is not None:
@@ -949,7 +954,7 @@ def _insert_othervectorial_profile(e_r, s_p, config):
         logging.warning(f'Other vectorial profile not stored in CAAML XML v{version}.')
         return
 
-    e_p = ET.SubElement(e_r, 'othervectorialProfile',
+    e_p = ET.SubElement(e_r, f'{ns}othervectorialProfile',
                         attrib=_gen_common_attrib(s_p, config=config))
 
     if s_p.profile_nr is not None:
@@ -994,7 +999,7 @@ def _insert_ssa_profile(e_r, s_p, config):
     profile_depth = config['profile_depth']
     version = config['version']
 
-    e_p = ET.SubElement(e_r, 'specSurfAreaProfile',
+    e_p = ET.SubElement(e_r, f'{ns}specSurfAreaProfile',
                         attrib=_gen_common_attrib(s_p, config=config))
 
     if s_p.profile_nr is not None:
@@ -1054,7 +1059,7 @@ def _insert_hardness_profile(e_r, s_p, config):
     profile_depth = config['profile_depth']
     version = config['version']
 
-    e_p = ET.SubElement(e_r, 'hardnessProfile',
+    e_p = ET.SubElement(e_r, f'{ns}hardnessProfile',
                         attrib=_gen_common_attrib(s_p, config=config))
     # TODO: Add uomWeightHammer uomWeightTube uomDropHeight  <10-03-25, Léo Viallon-Galinier> #
 
@@ -1112,3 +1117,167 @@ def _insert_hardness_profile(e_r, s_p, config):
         e_m = ET.SubElement(e_p, f'{ns}Measurements')
         e_m = ET.SubElement(e_m, f'{ns}tupleList')
         e_m.text = ' '.join([f'{layer.height:.12g},{layer.hardness:.12g}' for _, layer in s_p.data.iterrows()])
+
+
+def _insert_stb_test(e_r, s_t, config):
+    if s_t is None:
+        return
+
+    ns = config['ns']
+    profile_depth = config['profile_depth']
+
+    import snowprofile.stability_tests
+
+    if isinstance(s_t, snowprofile.stability_tests.CTStabilityTest):
+        e_t = ET.SubElement(e_r, f'{ns}ComprTest',
+                            attrib=_gen_common_attrib(s_t, config=config))
+
+        if len(s_t.results) == 0:  # No failure
+            _ = ET.SubElement(e_t, f'{ns}noFailure')
+        else:  # Positive result(s)
+            for result in s_t.results:
+                e_fail = ET.SubElement(e_t, f'{ns}failedOn')
+                e_resu = ET.SubElement(e_fail, f'{ns}Results')
+                # CT result
+                _ = ET.SubElement(e_resu, f'{ns}testScore')
+                _.text = '{:d}'.format(result.test_score)
+                if result.fracture_character is not None:
+                    _ = ET.SubElement(e_resu, f'{ns}fractureCharacter')
+                    _.text = result.fracture_character
+                # Failure layer details
+                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
+    elif isinstance(s_t, snowprofile.stability_tests.ECTStabilityTest):
+        e_t = ET.SubElement(e_r, f'{ns}ExtColumnTest',
+                            attrib=_gen_common_attrib(s_t, config=config))
+
+        if len(s_t.results) == 0:  # No failure
+            _ = ET.SubElement(e_t, f'{ns}noFailure')
+        else:  # Positive result(s)
+            for result in s_t.results:
+                e_fail = ET.SubElement(e_t, f'{ns}failedOn')
+                e_resu = ET.SubElement(e_fail, f'{ns}Results')
+                # ECT result
+                _ = ET.SubElement(e_resu, f'{ns}testScore')
+                if result.test_score == 0 and result.propagation:
+                    _.text = 'ECTPV'
+                elif result.test_score == 0:
+                    _.text = 'ECTN1'
+                else:
+                    _.text = 'ECT{p}{n}'.format(p = 'P' if result.propagation else 'N', n = result.test_score)
+                # Failure layer details
+                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
+    elif isinstance(s_t, snowprofile.stability_tests.RBStabilityTest):
+        e_t = ET.SubElement(e_r, f'{ns}RBlockTest',
+                            attrib=_gen_common_attrib(s_t, config=config))
+
+        if len(s_t.results) == 0:  # No failure
+            _ = ET.SubElement(e_t, f'{ns}noFailure')
+        else:  # Positive result(s)
+            for result in s_t.results:
+                e_fail = ET.SubElement(e_t, f'{ns}failedOn')
+                e_resu = ET.SubElement(e_fail, f'{ns}Results')
+                # RB result
+                _ = ET.SubElement(e_resu, f'{ns}testScore')
+                _.text = f'RB{result.test_score}'
+                if result.fracture_character is not None:
+                    _ = ET.SubElement(e_resu, f'{ns}fractureCharacter')
+                    _.text = result.fracture_character
+                if result.release_type is not None:
+                    _ = ET.SubElement(e_resu, f'{ns}releaseType')
+                    _.text = result.release_type
+                # Failure layer details
+                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
+    elif isinstance(s_t, snowprofile.stability_tests.ShearFrameStabilityTest):
+        e_t = ET.SubElement(e_r, f'{ns}ShearFrameTest',
+                            attrib=_gen_common_attrib(s_t, config=config))
+
+        if len(s_t.results) == 0:  # No failure
+            _ = ET.SubElement(e_t, f'{ns}noFailure')
+        else:  # Positive result(s)
+            for result in s_t.results:
+                e_fail = ET.SubElement(e_t, f'{ns}failedOn')
+                e_resu = ET.SubElement(e_fail, f'{ns}Results')
+                # SF result
+                _ = ET.SubElement(e_resu, f'{ns}failureForce', attrib={'uom': 'N'})
+                _.text = "{:.12g}".format(result.force)
+                if result.fracture_character is not None:
+                    _ = ET.SubElement(e_resu, f'{ns}fractureCharacter')
+                    _.text = result.fracture_character
+                # Failure layer details
+                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
+    elif isinstance(s_t, snowprofile.stability_tests.PSTStabilityTest):
+        e_t = ET.SubElement(e_r, f'{ns}PropSawTest',
+                            attrib=_gen_common_attrib(s_t, config=config))
+
+        e_resu = ET.SubElement(e_t, f'{ns}Results')
+        # ECT result
+        _ = ET.SubElement(e_resu, f'{ns}cutLength', attrib={'uom': 'cm'})
+        _.text = "{:.12g}".format(s_t.cut_length * 100)
+        _ = ET.SubElement(e_resu, f'{ns}columnLength', attrib={'uom': 'cm'})
+        if s_t.column_length is None:
+            _.text = "150"
+        else:
+            _.text = "{:.12g}".format(s_t.column_length * 100)
+        _ = ET.SubElement(e_resu, f'{ns}fracturePropagation')
+        _.text = s_t.propagation
+        # Failure layer details
+        _stb_test_layer_details(e_t, s_t, ns=ns, profile_depth=profile_depth)
+    else:
+        raise ValueError(f'Unknown stability test type {type(s_t)}.')
+
+    if s_t.test_nr is not None:
+        _ = ET.SubElement(e_t, f'{ns}testNr')
+        _.text = str(s_t.profile_nr)
+
+    if s_t.comment is not None:
+        _ = ET.SubElement(e_t, f'{ns}metaData')
+        _ = ET.SubElement(_, f'{ns}comment')
+        _.text = s_t.comment
+
+    _append_additional_data(e_t, s_t.additional_data, ns=ns)
+
+
+def _stb_test_layer_details(e_fail, result, ns='', profile_depth=0):
+    e_layer = ET.SubElement(e_fail, f'{ns}Layer')
+    _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+    _.text = "{:.12g}".format((profile_depth - result.height) * 100)
+    if result.layer_thickness is not None:
+        _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
+        _.text = "{:.12g}".format(result.layer_thickness * 100)
+    if result.grain_1 is not None:
+        _ = ET.SubElement(e_layer, f'{ns}grainFormPrimary')
+        _.text = result.grain_1
+    if result.grain_2 is not None:
+        _ = ET.SubElement(e_layer, f'{ns}grainFormSecondary')
+        _.text = result.grain_2
+    if result.grain_size is not None:
+        _ = ET.SubElement(e_layer, f'{ns}grainSize')
+        _c = ET.SubElement(_, f'{ns}Components', attrib={'uom': 'mm'})
+        _ = ET.SubElement(_c, f'{ns}avg')
+        _.text = "{:.12g}".format(result.grain_size * 1e3)
+        if 'grain_size_max' in result and not np.isnan(result.grain_size_max):
+            _ = ET.SubElement(_c, f'{ns}avgMax')
+            _.text = "{:.12g}".format(result.grain_size_max * 1e3)
+    _md = None
+    if result.layer_comment is not None and len(result.layer_comment) > 0:
+        _md = ET.SubElement(e_layer, f'{ns}metaData')
+        _ = ET.SubElement(_md, f'{ns}comment')
+        _.text = str(result.layer_comment)
+    if result.layer_additional_data is not None:
+        if _md is None:
+            _md = ET.SubElement(e_layer, f'{ns}metaData')
+            _append_additional_data(_md, result.additional_data, ns=ns)
+    if result.layer_formation_time is not None:
+        _ = ET.SubElement(e_layer, f'{ns}validFormationTime')
+        _t = ET.SubElement(_, f'{ns}TimeInstant')
+        _ = ET.SubElement(_t, f'{ns}timePosition')
+        _.text = result.layer_formation_time.isoformat()
+    elif (result.layer_formation_period is not None
+          and result.layer_formation_period[0] is not None
+          and result.ilayer_formation_period[1] is not None):
+        _ = ET.SubElement(e_layer, f'{ns}validFormationTime')
+        _t = ET.SubElement(_, f'{ns}TimePeriod')
+        _ = ET.SubElement(_t, f'{ns}beginPosition')
+        _.text = result.layer_formation_period[0].isoformat()
+        _ = ET.SubElement(_t, f'{ns}endPosition')
+        _.text = result.layer_formation_period[1].isoformat()

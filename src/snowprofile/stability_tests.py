@@ -17,6 +17,12 @@ class _StabilityTest(pydantic.BaseModel):
         extra='forbid')
 
     id: typing.Optional[str] = None
+    name: typing.Optional[str] = pydantic.Field(
+        None,
+        description="Name/short description of the test")
+    related_profiles: typing.List[str] = pydantic.Field(
+        [],
+        description="id of related profiles")
     comment: typing.Optional[str] = None
     test_nr: typing.Optional[int] = pydantic.Field(
         None, ge=0,
@@ -83,7 +89,7 @@ class RBStabilityTestResult(_StabilityTestResult):
 
     test_score: int = pydantic.Field(
         description="RB result [1-7], 7 meaning no fracture",
-        ge=0, le=7)
+        ge=1, le=7)
     release_type: typing.Optional[typing.Literal[
         'WB', 'MB', 'EB']] = pydantic.Field(
             None,
