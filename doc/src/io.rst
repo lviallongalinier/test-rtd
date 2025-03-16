@@ -1,3 +1,5 @@
+.. _io:
+
 Reading and writting data
 =========================
 

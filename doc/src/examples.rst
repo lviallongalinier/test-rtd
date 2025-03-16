@@ -55,3 +55,30 @@ NB : when changing data, you have to re-assign the dataframe to the data key of 
    df['top_height'] *= 2
    dp.data = df[['thickness', 'top_height', 'density']]
 
+
+Read and write CAAML snowprofiles
+---------------------------------
+
+CAAML snow profiles can be edited with `Niviz <https://www.niviz.org/>`_. This package allow for manipulation of such observations with python. It can be used for automatic python processing, adding metadata that are not covered by Niviz or combination of different data sources.
+
+The package allow to open an existing CAAML file :
+
+.. code-block:: python
+
+   import snowprofile.io
+   filename = 'path/to/caaml_file.caaml'
+   sp = snowprofile.io.read_caaml6_xml(filename)
+
+More details on reading and writing CAAML files are available in :ref:`io`. Other formats for getting and writing data are also supported.
+
+Combine different data sources
+------------------------------
+
+It is possible to combine different data sources. When loaded as two ``SnowProfile`` elements, ``sp1`` and ``sp2``, just do:
+
+.. code-block:: python
+
+   sp1.merge(sp2)
+
+See :py:func:`snowprofile.SnowProfile.merge` for details.
+
