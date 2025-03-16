@@ -112,6 +112,7 @@ class RBStabilityTest(_StabilityTest):
     results: typing.List[RBStabilityTestResult] = pydantic.Field(
         [],
         description="Successive results of a single RB test. No results mean RB7.")
+    type: typing.Literal['Rutschblock'] = 'Rutschblock'
 
 
 class CTStabilityTestResult(_StabilityTestResult):
@@ -141,6 +142,7 @@ class CTStabilityTest(_StabilityTest):
     results: typing.List[CTStabilityTestResult] = pydantic.Field(
         [],
         description="Successive results of a single CT test. No results mean CT31.")
+    type: typing.Literal['CT'] = 'CT'
 
 
 class ECTStabilityTestResult(_StabilityTestResult):
@@ -162,6 +164,7 @@ class ECTStabilityTest(_StabilityTest):
     results: typing.List[ECTStabilityTestResult] = pydantic.Field(
         [],
         description="Successive results of a single ECT test. No results mean ECTN.")
+    type: typing.Literal['ECT'] = 'ECT'
 
 
 class PSTStabilityTest(_StabilityTest, _StabilityTestResult):
@@ -178,6 +181,7 @@ class PSTStabilityTest(_StabilityTest, _StabilityTestResult):
         "- End means the fracture propagate through the end of the column,\n"
         "- SF means slab fracture,\n"
         "- Arr arrest of the propagation before the end of the column.")
+    type: typing.Literal['PST'] = 'PST'
 
 
 class ShearFrameStabilityTestResult(_StabilityTestResult):
@@ -206,3 +210,4 @@ class ShearFrameStabilityTest(_StabilityTest):
     results: typing.List[ShearFrameStabilityTestResult] = pydantic.Field(
         [],
         description="Successive results of a single SF test. No results mean no failure.")
+    type: typing.Literal['Shear Frame'] = 'Shear Frame'

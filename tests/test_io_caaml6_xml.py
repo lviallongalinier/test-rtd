@@ -20,6 +20,11 @@ class TestIOCAAML6XML(unittest.TestCase):
         assert sp.location.name == 'Chörbschhorn - Hanengretji - Davos'
         assert sp.application == 'SnowProfiler'
         assert sp.weather.cloudiness == 'FEW'
+        assert sp.profile_depth == 1.831
+        assert len(sp.temperature_profiles) == 1
+        assert len(sp.density_profiles) == 1
+        assert len(sp.impurity_profiles) == 1
+        assert sp.impurity_profiles[0].impurity_type == 'Black Carbon'
 
     def test_read_write_caaml6_xml_example2(self):
         sp = snowprofile.io.read_caaml6_xml(os.path.join(_here, 'resources', 'TestProfile2.caaml'))

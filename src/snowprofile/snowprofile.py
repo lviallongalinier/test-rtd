@@ -5,9 +5,11 @@ import typing
 import pydantic
 
 from snowprofile.classes import Time, Observer, Location, Weather, SurfaceConditions, Environment
-from snowprofile.profiles import Stratigraphy, TemperatureProfile, DensityProfile, LWCProfile, _SSAProfile, \
-    _HardnessProfile, StrengthProfile, ImpurityProfile, ScalarProfile, VectorialProfile
-from snowprofile.stability_tests import _StabilityTest
+from snowprofile.profiles import Stratigraphy, TemperatureProfile, DensityProfile, LWCProfile, \
+    SSAProfile, SSAPointProfile, HardnessProfile, HardnessPointProfile, \
+    StrengthProfile, ImpurityProfile, ScalarProfile, VectorialProfile
+from snowprofile.stability_tests import CTStabilityTest, ECTStabilityTest, RBStabilityTest, PSTStabilityTest, \
+    ShearFrameStabilityTest
 from snowprofile._base_classes import AdditionalData, BaseMergeable
 
 
@@ -159,12 +161,12 @@ class SnowProfile(pydantic.BaseModel, BaseMergeable):
     temperature_profiles: typing.List[TemperatureProfile] = []
     density_profiles: typing.List[DensityProfile] = []
     lwc_profiles: typing.List[LWCProfile] = []
-    ssa_profiles: typing.List[_SSAProfile] = []
-    hardness_profiles: typing.List[_HardnessProfile] = []
+    ssa_profiles: typing.List[SSAProfile | SSAPointProfile] = []
+    hardness_profiles: typing.List[HardnessProfile | HardnessPointProfile] = []
     strength_profiles: typing.List[StrengthProfile] = []
     impurity_profiles: typing.List[ImpurityProfile] = []
     other_scalar_profiles: typing.List[ScalarProfile] = []
     other_vectorial_profiles: typing.List[VectorialProfile] = []
-    stability_tests: typing.List[_StabilityTest] = []  # To change: accept different stability tests
+    stability_tests: typing.List[CTStabilityTest | ECTStabilityTest | RBStabilityTest | PSTStabilityTest | ShearFrameStabilityTest] = []
     additional_data: typing.Optional[AdditionalData] = None
     profile_additional_data: typing.Optional[AdditionalData] = None

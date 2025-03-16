@@ -8,7 +8,7 @@ import snowprofile.io.mf_bdclim
 
 try:
     from snowprofile.io.mf_bdclim import _mf_conn
-    _c = _mf_conn()
+    _c = _mf_conn(connect_timeout=1)
     _c.close()
     SKIP = False
 except Exception:
@@ -36,6 +36,7 @@ class TestIOMFBdClim(unittest.TestCase):
             x = snowprofile.io.mf_bdclim.read_mf_bdclim('38472401', date=datetime.datetime(2024, 12, 18, 10, 0))
         except ValueError as e:
             assert str(e) == 'Could not find data at date 2024-12-18 10:00:00'
+
 
 if __name__ == "__main__":
     unittest.main()

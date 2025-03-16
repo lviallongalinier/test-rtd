@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import os
+import os.path
 import unittest
 import tempfile
 
 import snowprofile
+
+_here = os.path.dirname(os.path.realpath(__file__))
 
 
 def gen_snowprofile():
@@ -53,6 +56,15 @@ class TestIOInternalJSON(unittest.TestCase):
         assert sp.density_profiles[0].data.equals(spn.density_profiles[0].data), f'Density profiles differ, see {fn}'
 
         os.remove(fn)
+
+    def test_to_from_real_data(self):
+        sp = snowprofile.io.read_caaml6_xml(os.path.join(_here, 'resources', 'SnowProfile_IACS_SLF22950.xml'))
+        json = snowprofile.io.to_json(sp)
+        spn = snowprofile.io.from_json(json)
+
+        assert len(sp.stability_tests) == len(spn.stability_tests)
+        for i in range(len(sp.stability_tests)):
+            assert isinstance(spn.stability_tests[i], type(sp.stability_tests[i]))
 
 
 if __name__ == "__main__":

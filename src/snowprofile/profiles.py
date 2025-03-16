@@ -223,6 +223,7 @@ class SSAProfile(_SSAProfile):
                      type='O',
                      values=QUALITY_FLAGS + [None]),
     )
+    type: typing.Literal['SSAProfile'] = 'SSAProfile'
 
 
 class SSAPointProfile(_SSAProfile):
@@ -245,6 +246,7 @@ class SSAPointProfile(_SSAProfile):
                      type='O',
                      values=QUALITY_FLAGS + [None]),
     )
+    type: typing.Literal['SSAPointProfile'] = 'SSAPointProfile'
 
 
 class _HardnessProfile(BaseProfile2):
@@ -289,6 +291,7 @@ class HardnessPointProfile(_HardnessProfile):
                      type='O',
                      values=QUALITY_FLAGS + [None]),
     )
+    type: typing.Literal['HardnessPointProfile'] = 'HardnessPointProfile'
 
 
 class HardnessProfile(_HardnessProfile):
@@ -322,6 +325,7 @@ class HardnessProfile(_HardnessProfile):
                      values=QUALITY_FLAGS + [None]),
     )
     # TODO: Computation of hardness from other data ?  <06-11-24, Léo Viallon-Galinier> #
+    type: typing.Literal['HardnessProfile'] = 'HardnessProfile'
 
 
 class StrengthProfile(BaseProfile2):
