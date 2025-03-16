@@ -234,7 +234,7 @@ class BaseData:
     _data = typing.Optional[pd.DataFrame]
 
     @property
-    def data(self) -> pd.DataFrame:
+    def data(self) -> typing.Optional[pd.DataFrame]:
         """
         The profile data in the form of a Pandas Dataframe
         """

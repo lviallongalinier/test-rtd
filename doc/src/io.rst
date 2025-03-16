@@ -3,6 +3,15 @@ Reading and writting data
 
 The SnowProfile object (and only this one) can be stored into different formats and read from various formats. Functions to deals with I/O of SnowProfile objects are gathered into the ``snowprofile.io`` module which is documented below.
 
+CAAML snowprofile format
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The CAAML international format for exchange of snow profile observation data is covered by this package with the two following functions:
+
+.. autofunction:: snowprofile.io.read_caaml6_xml
+
+.. autofunction:: snowprofile.io.write_caaml6_xml
+
 Internal JSON representation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -18,17 +18,16 @@ def read_caaml6_xml(filename):
     the entire XML file for the parser to work correctly.
 
     Most of the data stored in the CAAML format is parsed. However, some specific corner cases are not
-    covered by this parser. Specifically, as CAAML work with depth and the snowprofile package use
-    height, and the total depth is not compulsory in the CAAML format, the total depth may be set to 0
-    and the layer top/bottom height may be negative values. Some other corner cases and additional data
-    could not be parsed by this package. However, all main data treated by NiViz is fully parsed
-    (and even much more metadata is correctly treated).
+    covered by this parser. Specifically, when dealing with profiles with unkown snow depth (not compulsoy in CAAML),
+    the total depth may be set to 0 and the layer top/bottom height may be negative values.
 
     Some data is partially parsed. For instance, lacking numeric data could be specified as
     inapplicable (there is no value), missing (the value is not available when writting the data and may not exist),
     template (the value will be available later), unknown (the value is not available to the writter of the data but
     exists) or withheld (th evalue cannot be divulged). All these cases are treated the same way, by using a ``None``
-    python value.
+    python value. Some parameters can be represented with text rather than numeric measurement (e.g. grain size could
+    be reported in mm or with categories). For easier processing of the data, th package homogenize to numeric values
+    in the middle of the classes.
 
     Finally, CAAML may contain some additional data defined by the user. This cannot be parsed as the structure is
     unknown. Most of this data could be stored and rewritten to a new file but not all, especially not all those
