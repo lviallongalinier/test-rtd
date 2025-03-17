@@ -6,6 +6,7 @@ import re
 
 from snowprofile.io._caaml_parse_utils import _parse_str, _parse_numeric, _parse_additional_data, \
     _parse_list, _parse_numeric_list, _search_gml_id, _parse_lat_lon
+from snowprofile import _constants
 
 
 def read_caaml6_xml(filename):
@@ -104,8 +105,7 @@ def read_caaml6_xml(filename):
         name=_parse_str(root, f'{nss}locRef/{nss}name'),
         point_type=_parse_str(root, f'{nss}locRef/{nss}obsPointSubType'),
         aspect=_parse_numeric(root, f'{nss}locRef/{nss}validAspect/{nss}AspectPosition/{nss}position',
-                              attribution_table={'N': 0, 'NE': 45, 'E': 90, 'SE': 135, 'S': 180,
-                                                 'SW': 225, 'W': 270, 'NW': 315, 'n/a': None}),
+                              attribution_table=_constants.wind_directions),
         elevation=_parse_numeric(root, f'{nss}locRef/{nss}validElevation/{nss}ElevationPosition/{nss}position'),
         slope=_parse_numeric(root, f'{nss}locRef/{nss}validSlopeAngle/{nss}SlopeAnglePosition/{nss}position'),
         latitude=lat,
@@ -142,11 +142,10 @@ def read_caaml6_xml(filename):
         air_temperature=_parse_numeric(root, f'{base}/{nss}airTempPres'),
         wind_speed=_parse_numeric(
             root, f'{base}/{nss}windSpd',
-            attribution_table={'C': 0, 'L': 13.5, 'M': 34.2, 'S': 51.3, 'X': 72}),
+            attribution_table=_constants.wind_speed),
         wind_direction=_parse_numeric(
             root, f'{base}/{nss}windDir/{nss}AspectPosition/{nss}position',
-            attribution_table={'N': 0, 'NE': 45, 'E': 90, 'SE': 135, 'S': 180,
-                               'SW': 225, 'W': 270, 'NW': 315, 'n/a': None}),
+            attribution_table=_constants.wind_directions),
         air_temperature_measurement_height=_parse_numeric(
             root,
             f'{base}/{nss}metaData/{nss}airTempMeasurementHeight'),
@@ -449,12 +448,10 @@ def _parse_stratigraphy(elements, nss='', profile_depth=0):
              'grain_2': {'path': f'{nss}grainFormSecondary', 'type': 'str'},
              'grain_size': {'path': f'{nss}grainSize/{nss}Components/{nss}avg', 'type': 'numeric',
                             'numeric_factor': 0.001,  # mm -> m
-                            'attribution_table': {'very fine': 0.1, 'fine': 0.35, 'medium': 0.75, 'coarse': 1.5,
-                                                  'very coarse': 3.5, 'extreme': 6}},
+                            'attribution_table': _constants.grain_sizes},
              'grain_size_max': {'path': f'{nss}grainSize/{nss}Components/{nss}avgMax', 'type': 'numeric',
                                 'numeric_factor': 0.001,
-                                'attribution_table': {'very fine': 0.1, 'fine': 0.35, 'medium': 0.75, 'coarse': 1.5,
-                                                      'very coarse': 3.5, 'extreme': 6}},
+                                'attribution_table': _constants.grain_sizes},
              'hardness': {'path': f'{nss}hardness', 'type': 'str'},
              'wetness': {'path': f'{nss}wetness', 'type': 'str'},
              'loc': {'path': f'{nss}layerOfConcern', 'type': 'str'},
@@ -1191,11 +1188,9 @@ def _parse_generic_stability_test_result_fields(elem, nss='', profile_depth=0):
         grain_1 = _parse_str(elem, f'{nss}Layer/{nss}grainFormPrimary'),
         grain_2 = _parse_str(elem, f'{nss}Layer/{nss}grainFormSecondary'),
         grain_size = _parse_numeric(elem, f'{nss}Layer/{nss}grainSize/{nss}Components/{nss}avg', factor=0.001,
-                                    attribution_table={'very fine': 0.1, 'fine': 0.35, 'medium': 0.75, 'coarse': 1.5,
-                                                       'very coarse': 3.5, 'extreme': 6}),
+                                    attribution_table=_constants.grain_sizes),
         grain_size_max = _parse_numeric(elem, f'{nss}Layer/{nss}grainSize/{nss}Components/{nss}avgMax', factor=0.001,
-                                        attribution_table={'very fine': 0.1, 'fine': 0.35, 'medium': 0.75,
-                                                           'coarse': 1.5, 'very coarse': 3.5, 'extreme': 6}),
+                                        attribution_table=_constants.grain_sizes),
         layer_formation_time = _parse_str(elem,
                                           f'{nss}Layer/{nss}validFormationTime/{nss}TimeInstant/{nss}timePosition'),
         layer_formation_period = (

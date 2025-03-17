@@ -119,7 +119,7 @@ class CTStabilityTestResult(_StabilityTestResult):
     """
     Class for CT (Comprerssion test) stability test results.
     """
-    # TODO: CAAML accept categories : CTE/CTV/CTM/CTH  <18-12-24, Léo Viallon-Galinier> #
+    # TODO: CAAML accept categories : CTE/CTV/CTM/CTH
     model_config = pydantic.ConfigDict(
         validate_assignment=True,
         extra='forbid')

@@ -433,8 +433,3 @@ class BaseMergeable:
             logging.warning(f'Merge: Could not compare values of {self.__class__.__name__}.{attr_name}. '
                             'Possible data loss (not merged).')
             return
-
-        # TODO: To be done:  <22-01-25, Léo Viallon-Galinier> #
-        # - if has function is_null, treat the resul as "is None"
-        # - For list merging, check if the classes implement is_null or equals functions
-        #   and act accordingly to the results

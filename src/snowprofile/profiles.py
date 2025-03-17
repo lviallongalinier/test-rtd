@@ -324,7 +324,7 @@ class HardnessProfile(_HardnessProfile):
                      type='O',
                      values=QUALITY_FLAGS + [None]),
     )
-    # TODO: Computation of hardness from other data ?  <06-11-24, Léo Viallon-Galinier> #
+    # TODO: Computation of hardness from other data ?
     type: typing.Literal['HardnessProfile'] = 'HardnessProfile'
 
 
