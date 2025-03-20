@@ -1,4 +1,6 @@
 doc/build
+htmlcov
+.coverage
 
 *.egg-info
 
