@@ -22,7 +22,7 @@ class AdditionalData(pydantic.BaseModel):
     origin: typing.Optional[str] = None
 
 
-def force_utc(value: str | datetime.datetime) -> datetime.datetime:
+def force_utc(value: str | datetime.datetime | None) -> typing.Optional[datetime.datetime]:
     """
     Parse to a datetime object and force the tzinfo to be defined in a python datetime object.
 

@@ -388,7 +388,7 @@ def _parse_spectral_albedo(sa_element, nss=''):
     return sm
 
 
-def _parse_generic_profile(elements, definitions, nss=''):
+def _parse_generic_profile(elements, definitions, nss='', min_columns=[]):
     # Eventully get the height to invert depth and height !!
     if elements is None or len(elements) == 0:
         return None
@@ -415,7 +415,7 @@ def _parse_generic_profile(elements, definitions, nss=''):
             results[key].append(r)
 
     # Get rid of columns full of None
-    results = {key: value for key, value in results.items() if set(value) != set([None])}
+    results = {key: value for key, value in results.items() if set(value) != set([None]) or key in min_columns}
 
     return results
 
@@ -461,6 +461,7 @@ def _parse_stratigraphy(elements, nss='', profile_depth=0):
                                         'type': 'str'},
              'formation_period_end': {'path': f'{nss}validFormationTime/{nss}TimePeriod/{nss}endPosition',
                                       'type': 'str'}},
+            min_columns=['grain_1', 'grain_size', 'hardness', 'grain_2', 'wetness'],
             nss=nss)
 
         from snowprofile.profiles import Stratigraphy
