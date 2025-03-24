@@ -171,10 +171,11 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _ = ET.SubElement(_, f'{ns}SlopeAnglePosition', attrib={'uom': 'deg'})
         _ = ET.SubElement(_, f'{ns}position')
         _.text = str(int(loc.slope))
-    _ = ET.SubElement(src, f'{ns}pointLocation')
-    _ = ET.SubElement(_, f'{ns_gml}Point', attrib={f'{ns_gml}id': _gen_id('pointID'),
-                                                   'srsName': "urn:ogc:def:crs:OGC:1.3:CRS84",
-                                                   'srsDimension': "2"})
+    if loc.latitude is not None and loc.longitude is not None:
+        _ = ET.SubElement(src, f'{ns}pointLocation')
+        _ = ET.SubElement(_, f'{ns_gml}Point', attrib={f'{ns_gml}id': _gen_id('pointID'),
+                                                       'srsName': "urn:ogc:def:crs:OGC:1.3:CRS84",
+                                                       'srsDimension': "2"})
     _ = ET.SubElement(_, f'{ns_gml}pos')
     _.text = f'{loc.latitude} {loc.longitude}'
     if loc.country is not None:

@@ -137,7 +137,7 @@ class SnowProfile(pydantic.BaseModel, BaseMergeable):
     profile_comment: typing.Optional[str] = None
     time: Time = Time()
     observer: Observer = Observer()
-    location: Location = Location(name='Unknown', latitude=43.600824, longitude=1.432964)
+    location: Location = Location(name='Unknown')
     environment: Environment = Environment()
     application: typing.Optional[str] = 'snowprofile'
     application_version: typing.Optional[str] = None

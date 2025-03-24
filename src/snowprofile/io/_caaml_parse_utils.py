@@ -128,8 +128,8 @@ def _parse_lat_lon(pointlocation):
                     except Exception:
                         logging.warning('Could not parse latitude/longitude')
 
-    logging.error('Could not parse latitude/longitude. Will use 0, 0.')
-    return 0, 0
+    logging.error('Could not parse latitude/longitude.')
+    return None, None
 
 
 def _parse_list(*args, **kwargs):

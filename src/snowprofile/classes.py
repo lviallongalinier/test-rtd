@@ -152,8 +152,8 @@ class Location(pydantic.BaseModel, BaseMergeable):
     aspect: typing.Optional[int] = pydantic.Field(None, ge=0, le=360)
     elevation: typing.Optional[int] = None
     slope: typing.Optional[int] = pydantic.Field(None, ge=0, lt=90)
-    latitude: float
-    longitude: float
+    latitude: typing.Optional[float] = None
+    longitude: typing.Optional[float] = None
     country: typing.Optional[typing.Literal[
         "AD", "AE", "AF", "AG", "AL", "AM", "AO", "AR", "AT", "AU",
         "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ",
