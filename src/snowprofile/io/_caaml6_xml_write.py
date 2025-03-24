@@ -118,7 +118,8 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
             logging.error('Observer: if you provide more than one contact person you need to provide a source name. '
                           'Only the first contact person will be used.')
         _ = ET.SubElement(src, f'{ns}name')
-        _.text = snowprofile.observer.contact_persons[0].name
+        if snowprofile.observer.contact_persons[0].name is not None:
+            _.text = snowprofile.observer.contact_persons[0].name
         if snowprofile.observer.contact_persons[0].comment is not None:
             _ = ET.SubElement(src, f'{ns}metaData')
             _ = ET.SubElement(_, f'{ns}comment')
@@ -136,8 +137,9 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
             _.text = snowprofile.observer.source_comment
         for person in snowprofile.observer.contact_persons:
             p = ET.SubElement(op, f'{ns}contactPerson', attrib={f'{ns_gml}id': _gen_id(person.id, 'person')})
-            name = ET.SubElement(p, f'{ns}name')
-            name.text = person.name
+            name = ET.SubElement(p, f'{ns}name')  # Compulosry element (but no content is fine)
+            if person.name is not None:
+                name.text = person.name
             _append_additional_data(p, person.additional_data, ns=ns)
             if person.comment is not None:
                 _ = ET.SubElement(p, f'{ns}metaData')

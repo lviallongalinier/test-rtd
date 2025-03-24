@@ -22,7 +22,7 @@ class Person(pydantic.BaseModel):
         extra='forbid')
 
     id: typing.Optional[str] = None
-    name: str = 'Nobody'
+    name: typing.Optional[str] = None
     comment: typing.Optional[str] = None
     additional_data: typing.Optional[AdditionalData] = None
 
