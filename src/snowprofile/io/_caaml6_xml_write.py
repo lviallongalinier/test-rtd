@@ -12,7 +12,7 @@ import numpy as np
 
 table_versions_uri = {
     '6.0.6': 'http://caaml.org/Schemas/SnowProfileIACS/v6.0.6',
-    '6.0.5': 'http://caaml.org/Schemas/SnowProfileIACS/v6.0.5'}
+    '6.0.5': 'http://caaml.org/Schemas/SnowProfileIACS/v6.0.4'}
 
 uri_gml = 'http://www.opengis.net/gml'
 
@@ -78,6 +78,12 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     # - timeRef
     time = ET.SubElement(root, f'{ns}timeRef')
     record_time = ET.SubElement(time, f'{ns}recordTime')
+
+    if snowprofile.time.comment is not None:
+        _ = ET.SubElement(time, f'{ns}metaData')
+        _ = ET.SubElement(_, f'{ns}comment')
+        _.text = snowprofile.time.comment
+
     if snowprofile.time.record_period[0] is not None and snowprofile.time.record_period[1] is not None:
         _ = ET.SubElement(record_time, f'{ns}TimePeriod')
         begin = ET.SubElement(_, f'{ns}beginPosition')
@@ -102,11 +108,6 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _ = ET.SubElement(time, f'{ns}dateTimeLastEdit')
         _.text = snowprofile.time.last_edition_time.isoformat()
 
-    if snowprofile.time.comment is not None:
-        _ = ET.SubElement(time, f'{ns}metaData')
-        _ = ET.SubElement(_, f'{ns}comment')
-        _.text = snowprofile.time.comment
-
     _append_additional_data(time, snowprofile.time.additional_data, ns=ns)
 
     # - srcRef
@@ -117,34 +118,34 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         if len(snowprofile.observer.contact_persons) > 1:
             logging.error('Observer: if you provide more than one contact person you need to provide a source name. '
                           'Only the first contact person will be used.')
-        _ = ET.SubElement(src, f'{ns}name')
-        if snowprofile.observer.contact_persons[0].name is not None:
-            _.text = snowprofile.observer.contact_persons[0].name
         if snowprofile.observer.contact_persons[0].comment is not None:
             _ = ET.SubElement(src, f'{ns}metaData')
             _ = ET.SubElement(_, f'{ns}comment')
             _.text = snowprofile.observer.contact_persons[0].comment
+        _ = ET.SubElement(src, f'{ns}name')
+        if snowprofile.observer.contact_persons[0].name is not None:
+            _.text = snowprofile.observer.contact_persons[0].name
         _append_additional_data(src, snowprofile.observer.contact_persons[0].additional_data, ns=ns)
     else:
         op = ET.SubElement(src, f'{ns}Operation', attrib={f'{ns_gml}id': _gen_id(snowprofile.observer.source_id,
                                                                                  'operation')})
-        _ = ET.SubElement(op, f'{ns}name')
-        _.text = snowprofile.observer.source_name
-        _append_additional_data(op, snowprofile.observer.source_additional_data, ns=ns)
         if snowprofile.observer.source_comment is not None:
             _ = ET.SubElement(op, f'{ns}metaData')
             _ = ET.SubElement(_, f'{ns}comment')
             _.text = snowprofile.observer.source_comment
+        _ = ET.SubElement(op, f'{ns}name')
+        _.text = snowprofile.observer.source_name
         for person in snowprofile.observer.contact_persons:
             p = ET.SubElement(op, f'{ns}contactPerson', attrib={f'{ns_gml}id': _gen_id(person.id, 'person')})
-            name = ET.SubElement(p, f'{ns}name')  # Compulosry element (but no content is fine)
-            if person.name is not None:
-                name.text = person.name
-            _append_additional_data(p, person.additional_data, ns=ns)
             if person.comment is not None:
                 _ = ET.SubElement(p, f'{ns}metaData')
                 _ = ET.SubElement(_, f'{ns}comment')
                 _.text = person.comment
+            name = ET.SubElement(p, f'{ns}name')  # Compulosry element (but no content is fine)
+            if person.name is not None:
+                name.text = person.name
+            _append_additional_data(p, person.additional_data, ns=ns)
+        _append_additional_data(op, snowprofile.observer.source_additional_data, ns=ns)
 
     # locRef
     src = ET.SubElement(root, f'{ns}locRef', attrib={f'{ns_gml}id': _gen_id(snowprofile.location.id, 'location')})
@@ -178,8 +179,8 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _ = ET.SubElement(_, f'{ns_gml}Point', attrib={f'{ns_gml}id': _gen_id('pointID'),
                                                        'srsName': "urn:ogc:def:crs:OGC:1.3:CRS84",
                                                        'srsDimension': "2"})
-    _ = ET.SubElement(_, f'{ns_gml}pos')
-    _.text = f'{loc.latitude} {loc.longitude}'
+        _ = ET.SubElement(_, f'{ns_gml}pos')
+        _.text = f'{loc.latitude} {loc.longitude}'
     if loc.country is not None:
         _ = ET.SubElement(src, f'{ns}country')
         _.text = loc.country
@@ -187,16 +188,6 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _ = ET.SubElement(src, f'{ns}region')
         _.text = loc.region
     _append_additional_data(src, loc.additional_data, ns=ns)
-
-    # application  and application_version (optional)
-    if snowprofile.application is not None:
-        _ = ET.SubElement(root, f'{ns}application')
-        _.text = snowprofile.application
-    if snowprofile.application_version is not None:
-        _ = ET.SubElement(root, f'{ns}applicationVersion')
-        _.text = snowprofile.application_version
-
-    _append_additional_data(root, snowprofile.additional_data, ns=ns)
 
     # snowProfileResultsOf
     e_r = ET.SubElement(root, f'{ns}snowProfileResultsOf')
@@ -224,7 +215,7 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     elif s_weather.air_temperature_measurement_height is not None:
         comment += f'Height of the temperature measurement: {s_weather.air_temperature_measurement_height}m'
     if s_weather.wind_measurement_height is not None and version >= "6.0.6":
-        _ = ET.SubElement(e_weather_metadata, f'{ns}airTempMeasurementHeight')
+        _ = ET.SubElement(e_weather_metadata, f'{ns}windMeasurementHeight')
         _.text = snowprofile.profile_comment
     elif s_weather.wind_measurement_height is not None:
         comment += f'Height of the wind measurement: {s_weather.wind_measurement_height}m'
@@ -313,19 +304,8 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     e_surf = ET.SubElement(e_r, f'{ns}surfCond')
     s_surf = snowprofile.surface_conditions
     comment = ''
-    if s_surf.comment is not None:
-        _ = ET.SubElement(e_surf, f'{ns}metaData')
-        _ = ET.SubElement(_, f'{ns}comment')
-        _.text = s_surf.comment
-    if s_surf.penetration_ram is not None:
-        _ = ET.SubElement(e_surf, f'{ns}penetrationRam', attrib={'uom': 'cm'})
-        _.text = "{:.12g}".format(s_surf.penetration_ram * 100)
-    if s_surf.penetration_foot is not None:
-        _ = ET.SubElement(e_surf, f'{ns}penetrationFoot', attrib={'uom': 'cm'})
-        _.text = "{:.12g}".format(s_surf.penetration_foot * 100)
-    if s_surf.penetration_ski is not None:
-        _ = ET.SubElement(e_surf, f'{ns}penetrationSki', attrib={'uom': 'cm'})
-        _.text = "{:.12g}".format(s_surf.penetration_ski * 100)
+    _ = ET.SubElement(e_surf, f'{ns}metaData')
+    e_surf_comment = ET.SubElement(_, f'{ns}comment')
 
     _ = ET.SubElement(e_surf, f'{ns}surfFeatures')
     e_surff = ET.SubElement(_, f'{ns}Components')
@@ -414,9 +394,17 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
             comment = s_surf.comment
         elif s_surf.comment is not None:
             comment = s_surf.comment + "\n\n" + comment
-        _ = ET.SubElement(e_surf, f'{ns}metaData')
-        _ = ET.SubElement(e_surf, f'{ns}comment')
-        _.text = comment
+        e_surf_comment.text = comment
+
+    if s_surf.penetration_ram is not None:
+        _ = ET.SubElement(e_surf, f'{ns}penetrationRam', attrib={'uom': 'cm'})
+        _.text = "{:.12g}".format(s_surf.penetration_ram * 100)
+    if s_surf.penetration_foot is not None:
+        _ = ET.SubElement(e_surf, f'{ns}penetrationFoot', attrib={'uom': 'cm'})
+        _.text = "{:.12g}".format(s_surf.penetration_foot * 100)
+    if s_surf.penetration_ski is not None:
+        _ = ET.SubElement(e_surf, f'{ns}penetrationSki', attrib={'uom': 'cm'})
+        _.text = "{:.12g}".format(s_surf.penetration_ski * 100)
 
     _append_additional_data(e_surf, s_surf.additional_data)
 
@@ -438,8 +426,22 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     for profile in snowprofile.lwc_profiles:
         _insert_lwc_profile(e_r, profile, config=config)
 
+    for profile in snowprofile.ssa_profiles:
+        _insert_ssa_profile(e_r, profile, config=config)
+
+    for profile in snowprofile.hardness_profiles:
+        _insert_hardness_profile(e_r, profile, config=config)
+
     for profile in snowprofile.strength_profiles:
         _insert_strength_profile(e_r, profile, config=config)
+
+    for profile in snowprofile.impurity_profiles:
+        _insert_impurity_profile(e_r, profile, config=config)
+
+    if len(snowprofile.stability_tests) > 0:
+        e_stb = ET.SubElement(e_r, f'{ns}stbTests')
+        for stbt in snowprofile.stability_tests:
+            _insert_stb_test(e_stb, stbt, config=config)
 
     for profile in snowprofile.other_scalar_profiles:
         _insert_otherscalar_profile(e_r, profile, config=config)
@@ -447,19 +449,18 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     for profile in snowprofile.other_vectorial_profiles:
         _insert_othervectorial_profile(e_r, profile, config=config)
 
-    for profile in snowprofile.ssa_profiles:
-        _insert_ssa_profile(e_r, profile, config=config)
-
-    for profile in snowprofile.hardness_profiles:
-        _insert_hardness_profile(e_r, profile, config=config)
-
-    if len(snowprofile.stability_tests) > 0:
-        e_stb = ET.SubElement(e_r, f'{ns}stbTests')
-        for stbt in snowprofile.stability_tests:
-            _insert_stb_test(e_stb, stbt, config=config)
-
     # - Additional data
     _append_additional_data(e_r, snowprofile.profile_additional_data)
+
+    # application  and application_version (optional)
+    if snowprofile.application is not None:
+        _ = ET.SubElement(root, f'{ns}application')
+        _.text = snowprofile.application
+    if snowprofile.application_version is not None:
+        _ = ET.SubElement(root, f'{ns}applicationVersion')
+        _.text = snowprofile.application_version
+
+    _append_additional_data(root, snowprofile.additional_data, ns=ns)
 
     #
     # Generate Tree from mail element and write
@@ -490,12 +491,30 @@ def _gen_common_attrib(s, config={}):
 def _gen_common_metadata(e, s, config={}, additional_metadata = [], name='metaData'):
     """
     Metadata handler common to all profiles.
-    Also deal with additional_data
     """
     ns = config['ns']
     comment = ''
 
     e_md = ET.SubElement(e, f'{ns}{name}')
+    e_comment = ET.SubElement(e_md, f'{ns}comment')
+
+    if config['version'] >= "6.0.6":
+        if s.record_period is not None and s.record_period[0] is not None and s.record_period[1] is not None:
+            e_record_time = ET.SubElement(e_md, f'{ns}recordTime')
+            _ = ET.SubElement(e_record_time, f'{ns}TimePeriod')
+            begin = ET.SubElement(_, f'{ns}beginPosition')
+            begin.text = s.record_period[0].isoformat()
+            end = ET.SubElement(_, f'{ns}endPosition')
+            end.text = s.record_period[1].isoformat()
+        elif s.record_time is not None:
+            e_record_time = ET.SubElement(e_md, f'{ns}recordTime')
+            _ = ET.SubElement(e_record_time, f'{ns}TimeInstant')
+            begin = ET.SubElement(_, f'{ns}timePosition')
+    else:
+        if s.record_time is not None:
+            comment += f"Record time: {s.record_time.isoformat()}\n"
+        if s.record_period is not None and s.record_period[0] is not None and s.record_period[1] is not None:
+            comment += f"Record period: {s.record_period[0].isoformat()}-{s.record_period[1].isoformat()}\n"
 
     e_hs = None
     if s.profile_depth is not None and s.profile_depth != config['profile_depth']:
@@ -516,23 +535,6 @@ def _gen_common_metadata(e, s, config={}, additional_metadata = [], name='metaDa
         else:
             comment += f"Profile SWE: {s.profile_swe}m\n"
 
-    if config['version'] >= "6.0.6":
-        if s.record_period is not None and s.record_period[0] is not None and s.record_period[1] is not None:
-            e_record_time = ET.SubElement(e_md, f'{ns}recordTime')
-            _ = ET.SubElement(e_record_time, f'{ns}TimePeriod')
-            begin = ET.SubElement(_, f'{ns}beginPosition')
-            begin.text = s.record_period[0].isoformat()
-            end = ET.SubElement(_, f'{ns}endPosition')
-            end.text = s.record_period[1].isoformat()
-        elif s.record_time is not None:
-            e_record_time = ET.SubElement(e_md, f'{ns}recordTime')
-            _ = ET.SubElement(e_record_time, f'{ns}TimeInstant')
-            begin = ET.SubElement(_, f'{ns}timePosition')
-    else:
-        if s.record_time is not None:
-            comment += f"Record time: {s.record_time.isoformat()}\n"
-        if s.record_period is not None and s.record_period[0] is not None and s.record_period[1] is not None:
-            comment += f"Record period: {s.record_period[0].isoformat()}-{s.record_period[1].isoformat()}\n"
 
     for elem in additional_metadata:
         value = elem['value']
@@ -572,11 +574,7 @@ def _gen_common_metadata(e, s, config={}, additional_metadata = [], name='metaDa
             comment = s.comment
         elif s.comment is not None:
             comment = s.comment + "\n\n" + comment
-        _ = ET.SubElement(e_md, f'{ns}comment')
-        _.text = comment
-
-    # Additional data
-    _append_additional_data(e, s.additional_data, ns=ns)
+        e_comment.text = comment
 
     return e_md
 
@@ -646,6 +644,8 @@ def _insert_stratigrpahy_profile(e_r, s_strat, config):
             _ = ET.SubElement(_t, f'{ns}endPosition')
             _.text = layer.formation_period_end.isoformat()
 
+    _append_additional_data(e_s, s_strat.additional_data, ns=ns)
+
 
 _density_mom = {'6.0.5': ['Snow Tube', 'Snow Cylinder', 'Snow Cutter', 'Denoth Probe', 'other']}
 
@@ -672,9 +672,9 @@ def _insert_density_profile(e_r, s_p, config):
             {'value': s_p.method_of_measurement, 'default_value': 'other',
              'values': _density_mom[version] if version in _density_mom else None,
              'key': 'methodOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'kgm-3'}},
             {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
              'key': 'qualityOfMeas'},
-            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'kgm-3'}},
             {'value': s_p.probed_volume, 'key': 'probeVolume', 'factor': 1e6, 'attrib': {'uom': 'cm3'}},
             {'value': s_p.probed_diameter, 'key': 'probeDiameter', 'factor': 100, 'attrib': {'uom': 'cm'}},
             {'value': s_p.probed_length, 'key': 'probeLength', 'factor': 100, 'attrib': {'uom': 'cm'}},
@@ -695,6 +695,8 @@ def _insert_density_profile(e_r, s_p, config):
             attrib['quality'] = layer.quality
         _ = ET.SubElement(e_layer, f'{ns}density', attrib=attrib)
         _.text = "{:.12g}".format(layer.density)
+
+    _append_additional_data(e_p, s_p.additional_data, ns=ns)
 
 
 def _insert_temperature_profile(e_r, s_p, config):
@@ -718,10 +720,10 @@ def _insert_temperature_profile(e_r, s_p, config):
         additional_metadata = [
             {'value': s_p.method_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Measurement method',
              'key': 'methodOfMeas'},
-            {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
-             'key': 'qualityOfMeas'},
             {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'degC'},
-             'min_version': '6.0.6', 'comment_title': 'Uncertainty of measurement (degC)'}, ])
+             'min_version': '6.0.6', 'comment_title': 'Uncertainty of measurement (degC)'},
+            {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
+             'key': 'qualityOfMeas'}, ])
 
     # Loop layers
     for _, layer in s_p.data.iterrows():
@@ -735,6 +737,8 @@ def _insert_temperature_profile(e_r, s_p, config):
         if 'quality' in layer and layer.quality is not None and version >= '6.0.6':
             _ = ET.SubElement(e_layer, f'{ns}qualityOfMeas')
             _.text = layer.quality
+
+    _append_additional_data(e_p, s_p.additional_data, ns=ns)
 
 
 _lwc_mom = {'6.0.5': ['Denoth Probe', 'Snow Fork', 'other']}
@@ -762,9 +766,9 @@ def _insert_lwc_profile(e_r, s_p, config):
             {'value': s_p.method_of_measurement, 'default_value': 'other',
              'values': _lwc_mom[version] if version in _lwc_mom else None,
              'key': 'methodOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': '% by Vol'}},
             {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
              'key': 'qualityOfMeas'},
-            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': '% by Vol'}},
             {'value': s_p.probed_thickness, 'key': 'probedThickness', 'factor': 100, 'attrib': {'uom': 'cm'}}, ])
 
     # Loop layers
@@ -782,6 +786,8 @@ def _insert_lwc_profile(e_r, s_p, config):
             attrib['quality'] = layer.quality
         _ = ET.SubElement(e_layer, f'{ns}lwc', attrib=attrib)
         _.text = "{:.12g}".format(layer.lwc)
+
+    _append_additional_data(e_p, s_p.additional_data, ns=ns)
 
 
 _strength_mom = {'6.0.5': ['Shear Frame', 'other']}
@@ -810,9 +816,9 @@ def _insert_strength_profile(e_r, s_p, config):
             {'value': s_p.method_of_measurement, 'default_value': 'other',
              'values': _strength_mom[version] if version in _strength_mom else None,
              'key': 'methodOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'Nm-2'}},
             {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
              'key': 'qualityOfMeas'},
-            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'Nm-2'}},
             {'value': s_p.probed_area, 'key': 'probedArea', 'factor': 1e4, 'attrib': {'uom': 'cm2'}}, ])
 
     # Loop layers
@@ -833,6 +839,8 @@ def _insert_strength_profile(e_r, s_p, config):
         if 'fracture_character' in layer and layer.fracture_character is not None:
             _ = ET.SubElement(e_layer, f'{ns}fractureCharacter')
             _.text = layer.fracture_character
+
+    _append_additional_data(e_p, s_p.additional_data, ns=ns)
 
 
 _impurity_mom = {'6.0.5': ['other']}
@@ -858,19 +866,19 @@ def _insert_impurity_profile(e_r, s_p, config):
         e_p, s_p, config=config,
         name = 'impurityMetaData',
         additional_metadata = [
-            {'value': s_p.method_of_measurement, 'default_value': 'other',
-             'values': _impurity_mom[version] if version in _impurity_mom else None,
-             'key': 'methodOfMeas'},
             {'value': s_p.impurity_type, 'default_value': 'other',
              'values': _impurity_type[version] if version in _impurity_type else None,
              'key': 'impurity'},
+            {'value': s_p.method_of_measurement, 'default_value': 'other',
+             'values': _impurity_mom[version] if version in _impurity_mom else None,
+             'key': 'methodOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': ''}},
             {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
              'key': 'qualityOfMeas'},
-            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': ''}},
+            {'value': s_p.probed_thickness, 'key': 'probedThickness', 'factor': 100, 'attrib': {'uom': 'cm'}},
             {'value': s_p.probed_volume, 'key': 'probedVolume', 'factor': 1e6, 'attrib': {'uom': 'cm3'}},
             {'value': s_p.probed_diameter, 'key': 'probedDiameter', 'factor': 100, 'attrib': {'uom': 'cm'}},
-            {'value': s_p.probed_length, 'key': 'probedLength', 'factor': 100, 'attrib': {'uom': 'cm'}},
-            {'value': s_p.probed_thickness, 'key': 'probedThickness', 'factor': 100, 'attrib': {'uom': 'cm'}}, ])
+            {'value': s_p.probed_length, 'key': 'probedLength', 'factor': 100, 'attrib': {'uom': 'cm'}}, ])
 
     # Loop layers
     for _, layer in s_p.data.iterrows():
@@ -893,6 +901,8 @@ def _insert_impurity_profile(e_r, s_p, config):
             else:
                 _ = ET.SubElement(e_layer, f'{ns}volumeFraction', attrib=attrib)
                 _.text = "{:.12g}".format(layer.volume_fraction)
+
+    _append_additional_data(e_p, s_p.additional_data, ns=ns)
 
 
 def _insert_otherscalar_profile(e_r, s_p, config):
@@ -918,11 +928,11 @@ def _insert_otherscalar_profile(e_r, s_p, config):
         e_p, s_p, config=config,
         name = 'otherScalarMetaData',
         additional_metadata = [
-            {'value': s_p.method_of_measurement, 'key': 'methodOfMeas'},
             {'value': s_p.parameter, 'key': 'parameter'},
+            {'value': s_p.method_of_measurement, 'key': 'methodOfMeas'},
             {'value': s_p.unit, 'key': 'uom'},
-            {'value': s_p.quality_of_measurement, 'key': 'qualityOfMeas'},
-            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas'}, ])
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas'},
+            {'value': s_p.quality_of_measurement, 'key': 'qualityOfMeas'}, ])
 
     # Loop layers
     for _, layer in s_p.data.iterrows():
@@ -939,6 +949,8 @@ def _insert_otherscalar_profile(e_r, s_p, config):
             attrib['quality'] = layer.quality
         _ = ET.SubElement(e_layer, f'{ns}value', attrib=attrib)
         _.text = "{:.12g}".format(layer.data)
+
+    _append_additional_data(e_p, s_p.additional_data, ns=ns)
 
 
 def _insert_othervectorial_profile(e_r, s_p, config):
@@ -964,11 +976,11 @@ def _insert_othervectorial_profile(e_r, s_p, config):
         e_p, s_p, config=config,
         name = 'otherVectorialMetaData',
         additional_metadata = [
-            {'value': s_p.method_of_measurement, 'key': 'methodOfMeas'},
             {'value': s_p.parameter, 'key': 'parameter'},
             {'value': s_p.rank, 'key': 'rank'},
-            {'value': s_p.quality_of_measurement, 'key': 'qualityOfMeas'},
-            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas'}, ])
+            {'value': s_p.method_of_measurement, 'key': 'methodOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas'},
+            {'value': s_p.quality_of_measurement, 'key': 'qualityOfMeas'}, ])
 
     # Loop layers
     for _, layer in s_p.data.iterrows():
@@ -985,6 +997,8 @@ def _insert_othervectorial_profile(e_r, s_p, config):
             attrib['quality'] = layer.quality
         _ = ET.SubElement(e_layer, f'{ns}value', attrib=attrib)
         _.text = ' '.join(["{:.12g}".format(e) for e in layer.data])
+
+    _append_additional_data(e_p, s_p.additional_data, ns=ns)
 
 
 _ssa_mom = {'6.0.5': ['Ice Cube', 'other']}
@@ -1012,9 +1026,9 @@ def _insert_ssa_profile(e_r, s_p, config):
             {'value': s_p.method_of_measurement, 'default_value': 'other',
              'values': _ssa_mom[version] if version in _ssa_mom else None,
              'key': 'methodOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'm2kg-1'}},
             {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
              'key': 'qualityOfMeas'},
-            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'm2kg-1'}},
             {'value': s_p.probed_thickness, 'key': 'probedThickness', 'factor': 100, 'attrib': {'uom': 'cm'}}, ])
 
     # Loop layers
@@ -1046,6 +1060,8 @@ def _insert_ssa_profile(e_r, s_p, config):
         e_m = ET.SubElement(e_m, f'{ns}tupleList')
         e_m.text = ' '.join([f'{layer.height:.12g},{layer.ssa:.12g}' for _, layer in s_p.data.iterrows()])
 
+    _append_additional_data(e_p, s_p.additional_data, ns=ns)
+
 
 _hardness_mom = {'6.0.5': ['SnowMicroPen', 'Ram Sonde', 'Push-Pull Gauge', 'other']}
 
@@ -1076,9 +1092,9 @@ def _insert_hardness_profile(e_r, s_p, config):
             {'value': s_p.method_of_measurement, 'default_value': 'other',
              'values': _hardness_mom[version] if version in _hardness_mom else None,
              'key': 'methodOfMeas'},
+            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'N'}},
             {'value': s_p.quality_of_measurement, 'min_version': '6.0.6', 'comment_title': 'Quality of measurement',
              'key': 'qualityOfMeas'},
-            {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas', 'attrib': {'uom': 'N'}},
             {'value': s_p.surface_of_indentation, 'key': 'surfOfIndentation', 'factor': 1000, 'attrib': {'uom': 'cm2'}},
             {'value': s_p.penetration_speed, 'key': 'penetrationSpeed', 'attrib': {'uom': 'ms-1'},
              'min_version': '6.0.6', 'comment_title': 'Penetration speed'}, ])
@@ -1120,6 +1136,8 @@ def _insert_hardness_profile(e_r, s_p, config):
         e_m = ET.SubElement(e_m, f'{ns}tupleList')
         e_m.text = ' '.join([f'{layer.height:.12g},{layer.hardness:.12g}' for _, layer in s_p.data.iterrows()])
 
+    _append_additional_data(e_p, s_p.additional_data, ns=ns)
+
 
 def _insert_stb_test(e_r, s_t, config):
     if s_t is None:
@@ -1139,15 +1157,15 @@ def _insert_stb_test(e_r, s_t, config):
         else:  # Positive result(s)
             for result in s_t.results:
                 e_fail = ET.SubElement(e_t, f'{ns}failedOn')
-                e_resu = ET.SubElement(e_fail, f'{ns}Results')
+                # Failure layer details
+                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
                 # CT result
-                _ = ET.SubElement(e_resu, f'{ns}testScore')
-                _.text = '{:d}'.format(result.test_score)
+                e_resu = ET.SubElement(e_fail, f'{ns}Results')
                 if result.fracture_character is not None:
                     _ = ET.SubElement(e_resu, f'{ns}fractureCharacter')
                     _.text = result.fracture_character
-                # Failure layer details
-                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
+                _ = ET.SubElement(e_resu, f'{ns}testScore')
+                _.text = '{:d}'.format(result.test_score)
     elif isinstance(s_t, snowprofile.stability_tests.ECTStabilityTest):
         e_t = ET.SubElement(e_r, f'{ns}ExtColumnTest',
                             attrib=_gen_common_attrib(s_t, config=config))
@@ -1157,8 +1175,10 @@ def _insert_stb_test(e_r, s_t, config):
         else:  # Positive result(s)
             for result in s_t.results:
                 e_fail = ET.SubElement(e_t, f'{ns}failedOn')
-                e_resu = ET.SubElement(e_fail, f'{ns}Results')
+                # Failure layer details
+                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
                 # ECT result
+                e_resu = ET.SubElement(e_fail, f'{ns}Results')
                 _ = ET.SubElement(e_resu, f'{ns}testScore')
                 if result.test_score == 0 and result.propagation:
                     _.text = 'ECTPV'
@@ -1166,8 +1186,6 @@ def _insert_stb_test(e_r, s_t, config):
                     _.text = 'ECTN1'
                 else:
                     _.text = 'ECT{p}{n}'.format(p = 'P' if result.propagation else 'N', n = result.test_score)
-                # Failure layer details
-                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
     elif isinstance(s_t, snowprofile.stability_tests.RBStabilityTest):
         e_t = ET.SubElement(e_r, f'{ns}RBlockTest',
                             attrib=_gen_common_attrib(s_t, config=config))
@@ -1177,18 +1195,18 @@ def _insert_stb_test(e_r, s_t, config):
         else:  # Positive result(s)
             for result in s_t.results:
                 e_fail = ET.SubElement(e_t, f'{ns}failedOn')
-                e_resu = ET.SubElement(e_fail, f'{ns}Results')
+                # Failure layer details
+                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
                 # RB result
-                _ = ET.SubElement(e_resu, f'{ns}testScore')
-                _.text = f'RB{result.test_score}'
+                e_resu = ET.SubElement(e_fail, f'{ns}Results')
                 if result.fracture_character is not None:
                     _ = ET.SubElement(e_resu, f'{ns}fractureCharacter')
                     _.text = result.fracture_character
                 if result.release_type is not None:
                     _ = ET.SubElement(e_resu, f'{ns}releaseType')
                     _.text = result.release_type
-                # Failure layer details
-                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
+                _ = ET.SubElement(e_resu, f'{ns}testScore')
+                _.text = f'RB{result.test_score}'
     elif isinstance(s_t, snowprofile.stability_tests.ShearFrameStabilityTest):
         e_t = ET.SubElement(e_r, f'{ns}ShearFrameTest',
                             attrib=_gen_common_attrib(s_t, config=config))
@@ -1198,22 +1216,26 @@ def _insert_stb_test(e_r, s_t, config):
         else:  # Positive result(s)
             for result in s_t.results:
                 e_fail = ET.SubElement(e_t, f'{ns}failedOn')
-                e_resu = ET.SubElement(e_fail, f'{ns}Results')
+                # Failure layer details
+                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
                 # SF result
-                _ = ET.SubElement(e_resu, f'{ns}failureForce', attrib={'uom': 'N'})
-                _.text = "{:.12g}".format(result.force)
+                e_resu = ET.SubElement(e_fail, f'{ns}Results')
                 if result.fracture_character is not None:
                     _ = ET.SubElement(e_resu, f'{ns}fractureCharacter')
                     _.text = result.fracture_character
-                # Failure layer details
-                _stb_test_layer_details(e_fail, result, ns=ns, profile_depth=profile_depth)
+                _ = ET.SubElement(e_resu, f'{ns}failureForce', attrib={'uom': 'N'})
+                _.text = "{:.12g}".format(result.force)
     elif isinstance(s_t, snowprofile.stability_tests.PSTStabilityTest):
         e_t = ET.SubElement(e_r, f'{ns}PropSawTest',
                             attrib=_gen_common_attrib(s_t, config=config))
         e_t = ET.SubElement(e_t, f'{ns}failedOn')
 
-        e_resu = ET.SubElement(e_t, f'{ns}Results')
+        # Failure layer details
+        _stb_test_layer_details(e_t, s_t, ns=ns, profile_depth=profile_depth)
         # ECT result
+        e_resu = ET.SubElement(e_t, f'{ns}Results')
+        _ = ET.SubElement(e_resu, f'{ns}fracturePropagation')
+        _.text = s_t.propagation
         _ = ET.SubElement(e_resu, f'{ns}cutLength', attrib={'uom': 'cm'})
         _.text = "{:.12g}".format(s_t.cut_length * 100)
         _ = ET.SubElement(e_resu, f'{ns}columnLength', attrib={'uom': 'cm'})
@@ -1221,10 +1243,6 @@ def _insert_stb_test(e_r, s_t, config):
             _.text = "150"
         else:
             _.text = "{:.12g}".format(s_t.column_length * 100)
-        _ = ET.SubElement(e_resu, f'{ns}fracturePropagation')
-        _.text = s_t.propagation
-        # Failure layer details
-        _stb_test_layer_details(e_t, s_t, ns=ns, profile_depth=profile_depth)
     else:
         raise ValueError(f'Unknown stability test type {type(s_t)}.')
 
@@ -1242,17 +1260,26 @@ def _insert_stb_test(e_r, s_t, config):
 
 def _stb_test_layer_details(e_fail, result, ns='', profile_depth=0):
     e_layer = ET.SubElement(e_fail, f'{ns}Layer')
+    if result.layer_comment is not None and len(result.layer_comment) > 0:
+        _md = ET.SubElement(e_layer, f'{ns}metaData')
+        _ = ET.SubElement(_md, f'{ns}comment')
+        _.text = str(result.layer_comment)
+
     _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
     _.text = "{:.12g}".format((profile_depth - result.height) * 100)
+
     if result.layer_thickness is not None:
         _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
         _.text = "{:.12g}".format(result.layer_thickness * 100)
+
     if result.grain_1 is not None:
         _ = ET.SubElement(e_layer, f'{ns}grainFormPrimary')
         _.text = result.grain_1
+
     if result.grain_2 is not None:
         _ = ET.SubElement(e_layer, f'{ns}grainFormSecondary')
         _.text = result.grain_2
+
     if result.grain_size is not None:
         _ = ET.SubElement(e_layer, f'{ns}grainSize', attrib={'uom': 'mm'})
         _c = ET.SubElement(_, f'{ns}Components')
@@ -1262,14 +1289,7 @@ def _stb_test_layer_details(e_fail, result, ns='', profile_depth=0):
             _ = ET.SubElement(_c, f'{ns}avgMax')
             _.text = "{:.12g}".format(result.grain_size_max * 1e3)
     _md = None
-    if result.layer_comment is not None and len(result.layer_comment) > 0:
-        _md = ET.SubElement(e_layer, f'{ns}metaData')
-        _ = ET.SubElement(_md, f'{ns}comment')
-        _.text = str(result.layer_comment)
-    if result.layer_additional_data is not None:
-        if _md is None:
-            _md = ET.SubElement(e_layer, f'{ns}metaData')
-            _append_additional_data(_md, result.additional_data, ns=ns)
+
     if result.layer_formation_time is not None:
         _ = ET.SubElement(e_layer, f'{ns}validFormationTime')
         _t = ET.SubElement(_, f'{ns}TimeInstant')
@@ -1284,3 +1304,8 @@ def _stb_test_layer_details(e_fail, result, ns='', profile_depth=0):
         _.text = result.layer_formation_period[0].isoformat()
         _ = ET.SubElement(_t, f'{ns}endPosition')
         _.text = result.layer_formation_period[1].isoformat()
+
+    if result.layer_additional_data is not None:
+        if _md is None:
+            _md = ET.SubElement(e_layer, f'{ns}metaData')
+            _append_additional_data(_md, result.additional_data, ns=ns)

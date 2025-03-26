@@ -6,6 +6,8 @@ import os.path
 import unittest
 import tempfile
 
+from lxml import etree
+
 import snowprofile
 
 _here = os.path.dirname(os.path.realpath(__file__))
@@ -32,6 +34,17 @@ class TestIOCAAML6XML(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='snowprofiletests') as dirname:
             filename = os.path.join(dirname, 'testcaaml.caaml')
             snowprofile.io.write_caaml6_xml(sp, filename)
+
+            # Test CAAML6 validity
+            xmlschema_path = os.path.join(_here, 'resources', 'CAAMLv6.0.5_SnowProfileIACS.xsd')
+            xmlschema_doc = etree.parse(xmlschema_path)
+            xmlschema = etree.XMLSchema(xmlschema_doc)
+
+            xml_doc = etree.parse(filename)
+            result = xmlschema.validate(xml_doc)
+            assert result, f'Invalid CAAML output:\n{xmlschema.error_log}'
+
+            # Re-read
             sp_reread = snowprofile.io.read_caaml6_xml(filename)
 
         assert snowprofile.io.to_json(sp) == snowprofile.io.to_json(sp_reread)
