@@ -386,8 +386,40 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
             comment += f'Surface temperature measurement method: {s_surf.surface_temperature_measurement_method}\n'
 
     if s_surf.surface_albedo is not None or s_surf.spectral_albedo is not None:
-        logging.warning('Surface and spectral albedo not yet implemented for CAAML6 output')
-        # TODO: To be implemented.
+        e_albedo = ET.SubElement(e_surff, f'{ns}surfAlbedo')
+        if s_surf.surface_albedo is not None:
+            e_albedo_broadband = ET.SubElement(e_albedo, f'{ns}albedo')
+            _ = ET.SubElement(e_albedo_broadband, f'{ns}albedoMeasurement')
+            _.text = "{:.12g}".format(s_surf.surface_albedo)
+            if s_surf.surface_albedo_comment is not None:
+                _ = ET.SubElement(e_albedo_broadband, f'{ns}metaData')
+                _ = ET.SubElement(_, f'{ns}comment')
+                _.text = s_surf.surface_albedo_comment
+        if s_surf.spectral_albedo is not None:
+            e_albedo_spectral = ET.SubElement(e_albedo, f'{ns}spectralAlbedo')
+            logging.warning('Spectral albedo not yet implemented for CAAML6 output')
+            for _, dataline in s_surf.spectral_albedo.data.iterrows():
+                e_sam = ET.SubElement(e_albedo_spectral, f'{ns}spectralAlbedoMeasurement')
+
+                _ = ET.SubElement(e_sam, f'{ns}minWaveLength', attrib={'uom': 'nm'})
+                _.text = "{:.12g}".format(dataline.min_wavelength)
+
+                _ = ET.SubElement(e_sam, f'{ns}maxWaveLength', attrib={'uom': 'nm'})
+                _.text = "{:.12g}".format(dataline.max_wavelength)
+
+                attrib = {}
+                if 'uncertainty' in dataline and not np.isnan(dataline.uncertainty) and version >= '6.0.6':
+                    attrib['uncertainty'] = "{:.12g}".format(dataline.uncertainty)
+                if 'quality' in dataline and dataline.quality is not None and version >= '6.0.6':
+                    attrib['quality'] = dataline.quality
+                _ = ET.SubElement(e_sam, f'{ns}albedo', attrib=attrib)
+                _.text = "{:.12g}".format(dataline.albedo)
+
+            if s_surf.spectral_albedo_comment is not None:
+                _ = ET.SubElement(e_albedo_spectral, f'{ns}metaData')
+                _ = ET.SubElement(_, f'{ns}comment')
+                _.text = s_surf.surface_albedo_comment
+
 
     if s_surf.comment is not None or len(comment) > 0:
         if s_surf.comment is not None and len(comment) == 0:
