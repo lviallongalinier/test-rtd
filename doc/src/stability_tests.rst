@@ -1,3 +1,5 @@
+.. _Stability tests:
+
 Base classes for stability tests
 ================================
 

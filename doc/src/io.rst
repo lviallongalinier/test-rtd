@@ -44,9 +44,9 @@ Readers to get operational observations from Meteo-France internal database stru
 
 A first function allow to identify available observations:
 
-.. autofunction:: snowprofile.io.mf_bdclim.search_mf_bdclim_dates
+.. autofunction:: snowprofile.io.search_mf_bdclim_dates
 
 A second function allow for getting the observation itself:
 
-.. autofunction:: snowprofile.io.mf_bdclim.read_mf_bdclim
+.. autofunction:: snowprofile.io.read_mf_bdclim
 

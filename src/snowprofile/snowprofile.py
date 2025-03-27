@@ -36,19 +36,20 @@ class SnowProfile(pydantic.BaseModel, BaseMergeable):
       General comment on the snow profile (optional, str)
 
     time
-      Time of observation (Time object)
+      Time of observation (:py:class:`snowprofile.classes.Time` object)
 
     observer
-      Observer information (Observer object)
+      Observer information (:py:class:`snowprofile.classes.Observer` object)
 
     location
-      Location information (Location object)
+      Location information (:py:class:`snowprofile.classes.Location` object)
 
     weather
-      Weather observations (Weather object)
+      Weather observations (:py:class:`snowprofile.classes.Weather` object)
 
     surface_conditions
-      Surface conditions (penetration depths, surface features, wind surface features, etc.) (SurfaceConditions object)
+      Surface conditions (penetration depths, surface features, wind surface features, etc.)
+      (:py:class:`snowprofile.classes.SurfaceConditions` object)
 
     profile_depth
       Depth of the profile (m)
@@ -88,30 +89,32 @@ class SnowProfile(pydantic.BaseModel, BaseMergeable):
     '''''''''''''
 
     stratigraphy_profile
-      The stratigraphy profile (unique, StratigraphyProfile object)
+      The stratigraphy profile (unique, :py:class:`snowprofile.profiles.Stratigraphy` object)
 
     temperature_profiles:
-      Temperature profiles (list of TemperatureProfile objects)
+      Temperature profiles (list of :py:class:`snowprofile.profiles.TemperatureProfile` objects)
 
     density_profiles:
-      Density profiles (list of DensityProfile objects)
+      Density profiles (list of :py:class:`snowprofile.profiles.DensityProfile` objects)
 
     lwc_profiles:
-      LWC profiles (list of LWCProfile objects)
+      LWC profiles (list of :py:class:`snowprofile.profiles.LWCProfile` objects)
 
     ssa_profiles:
-      SSA profiles (list of SSAProfile objects)
+      SSA profiles (list of :py:class:`snowprofile.profiles.SSAProfile` or
+      :py:class:`snowprofile.profiles.SSAPointProfile` objects)
 
     hardness_profiles:
-      Hardness profiles (list of HardnessProfile objects)
+      Hardness profiles (list of :py:class:`snowprofile.profiles.HardnessProfile` or
+      :py:class:`snowprofile.profiles.HardnessPointProfile` objects)
 
     strength_profiles:
-      Strength profiles (list of StrengthProfile objects)
+      Strength profiles (list of :py:class:`snowprofile.profiles.StrengthProfile` objects)
 
     impurity_profiles:
-      Impurity profiles (list of ImpurityProfile objects)
+      Impurity profiles (list of :py:class:`snowprofile.profiles.ImpurityProfile` objects)
 
-    stability_tests: typing.List[StabilityTest]  # To change: accept different stability tests
+    stability_tests: List of stabilty tests. See :ref:`Stability tests` for details.
 
     Other data
     ''''''''''
