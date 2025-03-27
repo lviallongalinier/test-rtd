@@ -12,6 +12,8 @@ from snowprofile.stability_tests import CTStabilityTest, ECTStabilityTest, RBSta
     ShearFrameStabilityTest
 from snowprofile._base_classes import AdditionalData, BaseMergeable
 
+__all__ = ['SnowProfile']
+
 
 class SnowProfile(pydantic.BaseModel, BaseMergeable):
 

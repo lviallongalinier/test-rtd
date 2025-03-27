@@ -7,6 +7,12 @@ import pydantic
 from snowprofile._base_classes import AdditionalData, datetime_with_tz, datetime_tuple_with_tz
 from snowprofile._constants import GRAIN_SHAPES
 
+__all__ = ['CTStabilityTest', 'CTStabilityTestResult',
+           'ECTStabilityTest', 'ECTStabilityTestResult',
+           'PSTStabilityTest',
+           'RBStabilityTest', 'RBStabilityTestResult',
+           'ShearFrameStabilityTest', 'ShearFrameStabilityTestResult']
+
 
 class _StabilityTest(pydantic.BaseModel):
     """

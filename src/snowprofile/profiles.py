@@ -11,8 +11,8 @@ from snowprofile._constants import QUALITY_FLAGS, GRAIN_SHAPES, MANUAL_WETNESS, 
 __all__ = ['Stratigraphy',
            'TemperatureProfile', 'DensityProfile', 'LWCProfile',
            'SSAProfile', 'SSAPointProfile',
-           'HardnessProfile', 'RamSondeProfile',
-           'StrengthProfile', 'ImpurityProfile',
+           'HardnessProfile', 'HardnessPointProfile',
+           'RamSondeProfile', 'StrengthProfile', 'ImpurityProfile',
            'ScalarProfile', 'VectorialProfile']
 
 
