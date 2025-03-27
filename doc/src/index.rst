@@ -18,8 +18,18 @@ snowprofile project allow to manage observed snow profiles:
 Basics
 ------
 
+For the installation, see:
+
+.. toctree::
+   :maxdepth: 1
+
+   install.rst
+
+
 Concepts to understand before using the module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Main concepts of the module (read this first):
 
 .. toctree::
    :maxdepth: 1
@@ -27,6 +37,12 @@ Concepts to understand before using the module
    concepts.rst
    examples.rst
    units.rst
+
+Advanced concpets:
+
+.. toctree::
+   :maxdepth: 1
+
    uncertainties.rst
    configuration.rst
 
