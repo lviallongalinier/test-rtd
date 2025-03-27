@@ -8,9 +8,12 @@ import pydantic
 from snowprofile._constants import cloudiness_attribution, QUALITY_FLAGS
 from snowprofile._base_classes import AdditionalData, BaseData, BaseMergeable, \
     datetime_with_tz, datetime_tuple_with_tz, get_dataframe_checker
+from snowprofile._utils import get_config
 
 __all__ = ['Person', 'Time', 'Observer', 'Location', 'Weather', 'SurfaceConditions',
            'Environment', 'SolarMask', 'SpectralAlbedo']
+
+conf = get_config()
 
 
 class Person(pydantic.BaseModel):
@@ -88,12 +91,15 @@ class Observer(pydantic.BaseModel, BaseMergeable):
         validate_assignment=True,
         extra='forbid')
 
-    source_id: typing.Optional[str] = None
-    source_name: typing.Optional[str] = None
-    source_comment: typing.Optional[str] = None
+    source_id: typing.Optional[str] = conf.get('DEFAULT', 'observer_id', fallback=None)
+    source_name: typing.Optional[str] = conf.get('DEFAULT', 'observer_name', fallback=None)
+    source_comment: typing.Optional[str] = conf.get('DEFAULT', 'observer_comment', fallback=None)
     source_additional_data: typing.Optional[AdditionalData] = None
 
-    contact_persons: typing.List[Person] = pydantic.Field([Person(), ], min_length=1)
+    contact_persons: typing.List[Person] = pydantic.Field([Person(
+        name=conf.get('DEFAULT', 'contact_person_name', fallback=None),
+        id=conf.get('DEFAULT', 'contact_person_id', fallback=None),
+        comment=conf.get('DEFAULT', 'contact_person_comment', fallback=None)), ], min_length=1)
 
 
 class Location(pydantic.BaseModel, BaseMergeable):

@@ -21,5 +21,17 @@ Example file:
    [DEFAULT]
    observer_id= CEN
    observer_name = Univ. Grenoble Alpes, Université de Toulouse, Météo-France, CNRS, CNRM, Centre d'Études de la Neige, Grenoble, France
-   contact_person = M. Hide
+   observer_comment = The best laboratory on the Earth
+   contact_person_id = 007
+   contact_person_name = M. Hide
+   contact_person_
 
+If you plan to use :py:func:`snowprofile.io.read_mf_bdclim`, you have to create the folloing section:
+
+.. code-block:: ini
+
+   [io_mf_bdclim]
+   host = host.domain.ext
+   dbname = database_name
+   user = username
+   password = password
