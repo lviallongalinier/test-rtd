@@ -1,0 +1,17 @@
+;Location: CHARS field site
+;Observer: Louis et Kevin
+;Date: 20240111
+;LocalTime: 10:30
+;Total snow height (cm): 18.5cm
+;Comments: Temperature at different heights measured 15 cm to the SMP profile.
+
+Air temperature (°c): -36.4°C
+
+Heigth[cm]	Temperature[°c]
+18.5	-39.3
+17	-38.5
+15	-38.5
+13	-33.2
+10	-30.5
+6	-26.4
+0	-19.9

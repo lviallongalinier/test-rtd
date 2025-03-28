@@ -1,0 +1,18 @@
+;Location: in the field site, next to the stratigraphy.  
+;Observer: Jul, Lisa, Arvids
+;Date: 20240420
+;LocalTime: 16h00 
+;Total snow height (cm): 33
+;Comments: Heights correspond to the snow surface exposed to the laser. Samples were collected with the sampling tool or by "emporte-piece". 
+
+Height(cm)	Voltage(mV)	Reflectance(%)	SSA(m2/Kg)
+33	630	48.891785	46.23304
+27	565	44.569267	36.673462
+24	570	44.9095	37.345028
+20	540	42.848076	33.45538
+17	509	40.666344	29.764044
+14	506	40.452354	29.423203
+11	494	39.591274	28.087418
+9	444	35.912766	22.973562
+4	396	32.23754	18.71583
+1	250	20.098991	9.45988

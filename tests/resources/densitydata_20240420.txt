@@ -1,0 +1,23 @@
+;Location: CHARS field site
+;Observer:  Julien + Lisa
+;Date: 20240420
+;LocalTime: 16:00
+;Cutter: big cutter
+;Total snow height (cm): 37
+;Comments: Next to the snow profile. Measurements have been made with the large IGE box cutter of 2.5 cm height. Height corresponds to the top of the cutter.
+
+Heigth[cm]	Density[kg/m3]
+37	113.68
+33	137.12
+30	177.08
+27	130.00
+24	286.24
+21	273.36
+18	302.44
+15	291.92
+12	309.04
+9	333.48
+6	223.04
+
+
+
