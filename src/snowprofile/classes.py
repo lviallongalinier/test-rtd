@@ -486,7 +486,7 @@ class Environment(pydantic.BaseModel, BaseMergeable):
     solar_mask_method_of_measurement
       Measurement method for the solar mask
 
-    solar_mask_uncertainty and solar_mask_uncertainty
+    solar_mask_uncertainty and solar_mask_quality
       Quantitative uncertainty and qualitative quality of the solar mask measurement.
 
     solar_mask_comment
