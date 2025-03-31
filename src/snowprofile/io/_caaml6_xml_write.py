@@ -577,6 +577,8 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5', indent=False):
             if isinstance(indent, bool) and indent is True:
                 indent = '  '
             ET.indent(tree, space=indent)
+        else:
+            logging.error('CAAML6_XML write: Indentation is not available with python < 8.9. Will use indent=False.')
     tree.write(filename, encoding='utf-8',
                xml_declaration=True)
 
