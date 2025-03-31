@@ -37,6 +37,12 @@ You can get a dict-based JSON-serializable representation of a ``SnowProfile`` o
 
 .. autofunction:: snowprofile.io.to_dict
 
+
+Reading profiles from csv files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autofunction:: snowprofile.io.profile_csv.read_csv_profile
+
 Meteo-France internal database (Bdclim)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
