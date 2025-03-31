@@ -80,3 +80,5 @@ wind_speed = {'C': 0, 'L': 13.5, 'M': 34.2, 'S': 51.3, 'X': 72}  # m/s
 
 grain_sizes = {'very fine': 0.1, 'fine': 0.35, 'medium': 0.75, 'coarse': 1.5,
                'very coarse': 3.5, 'extreme': 6}  # mm
+
+CT_scores = {'CTV': 0, 'CTE': 5, 'CTM': 14, 'CTH': 24}

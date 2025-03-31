@@ -1100,7 +1100,7 @@ def _parse_stability_tests(element, nss='', profile_depth=0):
         from snowprofile.stability_tests import CTStabilityTest, CTStabilityTestResult
         _results = []
         for e in elementtest.findall(f'{nss}failedOn'):
-            test_score = _parse_str(e, f'{nss}Results/{nss}testScore')
+            test_score = _parse_str(e, f'{nss}Results/{nss}testScore', attribution_table=_constants.CT_scores)
             try:
                 test_score = int(test_score)
             except ValueError:
