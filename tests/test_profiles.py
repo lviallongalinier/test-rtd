@@ -163,13 +163,15 @@ class TestImpurity2Profile(unittest.TestCase, BaseTestProfiles):
 class TestOtherProfile(unittest.TestCase, BaseTestProfiles):
     CLASS = snowprofile.profiles.ScalarProfile
     key = 'data'
-    additional_keys = {'unit': 'm', 'parameter': 'A random length in m'}
+    additional_keys = {'unit': 'm', 'parameter': 'A random length in m',
+                       'method_of_measurement': '?'}
 
 
 class TestOtherVectorialProfile(unittest.TestCase, BaseTestProfiles):
     CLASS = snowprofile.profiles.VectorialProfile
     key = 'data'
-    additional_keys = {'unit': 'm', 'parameter': 'A random length in m', 'rank': 2}
+    additional_keys = {'unit': 'm', 'parameter': 'A random length in m', 'rank': 2,
+                       'method_of_measurement': '?'}
     values = [[100, 100], [75, 76]]
 
     def test_edit_values(self):

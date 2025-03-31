@@ -416,7 +416,7 @@ def _parse_generic_profile(elements, definitions, nss='', min_columns=[]):
             results[key].append(r)
 
     # Get rid of columns full of None
-    results = {key: value for key, value in results.items() if set(value) != set([None]) or key in min_columns}
+    results = {key: value for key, value in results.items() if key in min_columns or set(value) != set([None])}
 
     return results
 
@@ -710,7 +710,7 @@ def _parse_ssa_profiles(elements, nss='', profile_depth=0):
         # Point profile of SSA
         height = []
         ssa = []
-        e = elem.find('{nss}Measurements/{nss}tupleList')
+        e = elem.find(f'{nss}Measurements/{nss}tupleList')
         if e is not None:
             t = e.text
             try:
@@ -719,7 +719,7 @@ def _parse_ssa_profiles(elements, nss='', profile_depth=0):
                         continue
                     _tuple = x.split(',')
                     _height = _profile_depth - float(_tuple[0]) / 100
-                    _ssa = float(tuple[1])
+                    _ssa = float(_tuple[1])
                     height.append(_height)
                     ssa.append(_ssa)
             except IndexError:
@@ -804,7 +804,7 @@ def _parse_hardness_profiles(elements, nss='', profile_depth=0):
         # Point profile of Hardness
         height = []
         res = []
-        e = elem.find('{nss}Measurements/{nss}tupleList')
+        e = elem.find(f'{nss}Measurements/{nss}tupleList')
         if e is not None:
             t = e.text
             try:
@@ -813,7 +813,7 @@ def _parse_hardness_profiles(elements, nss='', profile_depth=0):
                         continue
                     _tuple = x.split(',')
                     _height = _profile_depth - float(_tuple[0]) / 100
-                    _res = float(tuple[1])
+                    _res = float(_tuple[1])
                     height.append(_height)
                     res.append(_res)
             except IndexError:
@@ -1039,7 +1039,7 @@ def _parse_other_vectorial_profiles(elements, nss='', profile_depth=0):
              'uncertainty': {'path': f'{nss}value', 'attribute': 'uncertainty',
                              'type': 'str'},
              'quality': {'path': f'{nss}value', 'attribute': 'quality', 'type': 'str'}},
-            nss=nss)
+            nss=nss, min_columns=['top_height', 'data'])
 
         from snowprofile.profiles import VectorialProfile
         s = VectorialProfile(

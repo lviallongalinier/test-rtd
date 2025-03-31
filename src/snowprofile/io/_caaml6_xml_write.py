@@ -66,6 +66,10 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
               'profile_swe': snowprofile.profile_swe,
               'version': version}
 
+    if snowprofile.profile_depth is None:
+        logging.warning('Profile depth not set. Ensure this is expected !')
+
+
     # Main XML element
     root = ET.Element(f'{ns}SnowProfile', attrib={f'{ns_gml}id': _gen_id(snowprofile.id, 'snowprofile')})
 
@@ -693,6 +697,9 @@ def _insert_stratigrpahy_profile(e_r, s_strat, config):
     for _, layer in s_strat.data.iterrows():
         e_layer = ET.SubElement(e_s, f'{ns}Layer')
         _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+        if profile_depth - layer.top_height < 0:
+            raise ValueError(f'Top height ({layer.top_height}m) > profile depth ({profile_depth}m) '
+                             'in statigraphy profile)')
         _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
         if not np.isnan(layer.thickness):
             _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
@@ -783,6 +790,9 @@ def _insert_density_profile(e_r, s_p, config):
     for _, layer in s_p.data.iterrows():
         e_layer = ET.SubElement(e_p, f'{ns}Layer')
         _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+        if profile_depth - layer.top_height < 0:
+            raise ValueError(f'Top height ({layer.top_height}m) > profile depth ({profile_depth}m) '
+                             'in density profile)')
         _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
         if not np.isnan(layer.thickness):
             _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
@@ -824,6 +834,9 @@ def _insert_temperature_profile(e_r, s_p, config):
     for _, layer in s_p.data.iterrows():
         e_layer = ET.SubElement(e_p, f'{ns}Obs')
         _ = ET.SubElement(e_layer, f'{ns}depth', attrib={'uom': 'cm'})
+        if profile_depth - layer.height < 0:
+            raise ValueError(f'Height ({layer.height}m) > profile depth ({profile_depth}m) '
+                             'in temperature profile)')
         _.text = "{:.12g}".format((profile_depth - layer.height) * 100)
         _ = ET.SubElement(e_layer, f'{ns}snowTemp', attrib={'uom': 'degC'})
         _.text = "{:.12g}".format(layer.temperature)
@@ -874,6 +887,9 @@ def _insert_lwc_profile(e_r, s_p, config):
     for _, layer in s_p.data.iterrows():
         e_layer = ET.SubElement(e_p, f'{ns}Layer')
         _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+        if profile_depth - layer.top_height < 0:
+            raise ValueError(f'Top height ({layer.top_height}m) > profile depth ({profile_depth}m) '
+                             'in LWC profile)')
         _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
         if not np.isnan(layer.thickness):
             _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
@@ -924,6 +940,9 @@ def _insert_strength_profile(e_r, s_p, config):
     for _, layer in s_p.data.iterrows():
         e_layer = ET.SubElement(e_p, f'{ns}Layer')
         _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+        if profile_depth - layer.top_height < 0:
+            raise ValueError(f'Top height ({layer.top_height}m) > profile depth ({profile_depth}m) '
+                             'in strength profile)')
         _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
         if not np.isnan(layer.thickness):
             _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
@@ -988,6 +1007,9 @@ def _insert_impurity_profile(e_r, s_p, config):
             ('volume_fraction' in layer and not np.isnan(layer.volume_fraction))):
             e_layer = ET.SubElement(e_p, f'{ns}Layer')
             _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+            if profile_depth - layer.top_height < 0:
+                raise ValueError(f'Top height ({layer.top_height}m) > profile depth ({profile_depth}m) '
+                                 'in impurity profile)')
             _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
             if not np.isnan(layer.thickness):
                 _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
@@ -1013,6 +1035,7 @@ def _insert_otherscalar_profile(e_r, s_p, config):
 
     ns = config['ns']
     profile_depth = s_p.profile_depth if s_p.profile_depth is not None else config['profile_depth']
+    print('Profile depth in ScalarProfile', profile_depth)
     version = config['version']
 
     if version < '6.0.6':
@@ -1040,6 +1063,9 @@ def _insert_otherscalar_profile(e_r, s_p, config):
     for _, layer in s_p.data.iterrows():
         e_layer = ET.SubElement(e_p, f'{ns}Layer')
         _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+        if profile_depth - layer.top_height < 0:
+            raise ValueError(f'Top height ({layer.top_height}m) > profile depth ({profile_depth}m) '
+                             'in other scalar profile)')
         _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
         if not np.isnan(layer.thickness):
             _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
@@ -1067,7 +1093,7 @@ def _insert_othervectorial_profile(e_r, s_p, config):
         logging.warning(f'Other vectorial profile not stored in CAAML XML v{version}.')
         return
 
-    e_p = ET.SubElement(e_r, f'{ns}othervectorialProfile',
+    e_p = ET.SubElement(e_r, f'{ns}otherVectorialProfile',
                         attrib=_gen_common_attrib(s_p, config=config))
 
     e_md = _gen_common_metadata(
@@ -1077,6 +1103,7 @@ def _insert_othervectorial_profile(e_r, s_p, config):
             {'value': s_p.parameter, 'key': 'parameter'},
             {'value': s_p.rank, 'key': 'rank'},
             {'value': s_p.method_of_measurement, 'key': 'methodOfMeas'},
+            {'value': s_p.unit, 'key': 'uom'},
             {'value': s_p.uncertainty_of_measurement, 'key': 'uncertaintyOfMeas'},
             {'value': s_p.quality_of_measurement, 'key': 'qualityOfMeas'}, ])
 
@@ -1088,6 +1115,9 @@ def _insert_othervectorial_profile(e_r, s_p, config):
     for _, layer in s_p.data.iterrows():
         e_layer = ET.SubElement(e_p, f'{ns}Layer')
         _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+        if profile_depth - layer.top_height < 0:
+            raise ValueError(f'Top height ({layer.top_height}m) > profile depth ({profile_depth}m) '
+                             'in vectorial profile)')
         _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
         if not np.isnan(layer.thickness):
             _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
@@ -1139,6 +1169,9 @@ def _insert_ssa_profile(e_r, s_p, config):
         for _, layer in s_p.data.iterrows():
             e_layer = ET.SubElement(e_p, f'{ns}Layer')
             _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+            if profile_depth - layer.top_height < 0:
+                raise ValueError(f'Top height ({layer.top_height}m) > profile depth ({profile_depth}m) '
+                                 'in SSA profile)')
             _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
             if not np.isnan(layer.thickness):
                 _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
@@ -1155,12 +1188,19 @@ def _insert_ssa_profile(e_r, s_p, config):
             'uomDepth': 'cm',
             'uomSpecSurfArea': 'm2kg-1'})
         _ = ET.SubElement(e_mc, f'{ns}depth')
-        _.value = 'template'
+        _.text = 'template'
         _ = ET.SubElement(e_mc, f'{ns}specSurfArea')
-        _.value = 'template'
+        _.text = 'template'
         e_m = ET.SubElement(e_p, f'{ns}Measurements')
         e_m = ET.SubElement(e_m, f'{ns}tupleList')
-        e_m.text = ' '.join([f'{layer.height:.12g},{layer.ssa:.12g}' for _, layer in s_p.data.iterrows()])
+        tl = []
+        for _, layer in s_p.data.iterrows():
+            if profile_depth - layer.height < 0:
+                raise ValueError(f'Top height ({layer.height}m) > profile depth ({profile_depth}m) '
+                                 'in SSA profile)')
+            _depth = (profile_depth - layer.height) * 100
+            tl.append(f'{_depth:.12g},{layer.ssa:.12g}')
+        e_m.text = ' '.join(tl)
 
     _append_additional_data(e_p, s_p.additional_data, ns=ns)
 
@@ -1208,6 +1248,9 @@ def _insert_hardness_profile(e_r, s_p, config):
         for _, layer in s_p.data.iterrows():
             e_layer = ET.SubElement(e_p, f'{ns}Layer')
             _ = ET.SubElement(e_layer, f'{ns}depthTop', attrib={'uom': 'cm'})
+            if profile_depth - layer.top_height < 0:
+                raise ValueError(f'Top height ({layer.top_height}m) > profile depth ({profile_depth}m) '
+                                 'in hardness profile)')
             _.text = "{:.12g}".format((profile_depth - layer.top_height) * 100)
             if not np.isnan(layer.thickness):
                 _ = ET.SubElement(e_layer, f'{ns}thickness', attrib={'uom': 'cm'})
@@ -1232,12 +1275,19 @@ def _insert_hardness_profile(e_r, s_p, config):
             'uomDepth': 'cm',
             'uomHardness': 'N'})
         _ = ET.SubElement(e_mc, f'{ns}depth')
-        _.value = 'template'
+        _.text = 'template'
         _ = ET.SubElement(e_mc, f'{ns}penRes')
-        _.value = 'template'
+        _.text = 'template'
         e_m = ET.SubElement(e_p, f'{ns}Measurements')
         e_m = ET.SubElement(e_m, f'{ns}tupleList')
-        e_m.text = ' '.join([f'{layer.height:.12g},{layer.hardness:.12g}' for _, layer in s_p.data.iterrows()])
+        tl = []
+        for _, layer in s_p.data.iterrows():
+            if profile_depth - layer.height < 0:
+                raise ValueError(f'Top height ({layer.height}m) > profile depth ({profile_depth}m) '
+                                 'in hardness profile)')
+            _depth = (profile_depth - layer.height) * 100
+            tl.append(f'{_depth:.12g},{layer.hardness:.12g}')
+        e_m.text = ' '.join(tl)
 
     _append_additional_data(e_p, s_p.additional_data, ns=ns)
 

@@ -284,6 +284,7 @@ class HardnessPointProfile(_HardnessProfile):
     and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
     _data_config = dict(
+        _mode='Point',
         hardness=dict(min=0),
         uncertainty=dict(optional=True,
                          nan_allowed=True),
@@ -444,7 +445,8 @@ class ScalarProfile(BaseProfile2):
 
     and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
-    method_of_measurement: typing.Optional[str] = None
+    method_of_measurement: str = pydantic.Field(
+        description="Measurement method description")
     unit: str = pydantic.Field(
         description="Unit (SI unit please)")
     parameter: str = pydantic.Field(
