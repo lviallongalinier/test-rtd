@@ -308,7 +308,8 @@ class BaseProfile(pydantic.BaseModel, BaseData):
         description="Profile depth if different from the SnowProfile one (m)")
     profile_swe: typing.Optional[float] = pydantic.Field(
         None, ge=0,
-        description="Profile SWE if specific measurement at the precise location of the profile (mm or kg/m2)")
+        description="Profile SWE if specific measurement at the precise location of the profile and different from the "
+        "SnowProfile SWE (mm or kg/m2)")
     additional_data: typing.Optional[AdditionalData] = pydantic.Field(
         None,
         description="Room to store additional data for CAAML compatibility (customData), do not use.")

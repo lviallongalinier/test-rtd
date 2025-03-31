@@ -70,7 +70,8 @@ def read_caaml6_xml(filename):
 
     # - Time
     time = Time(
-        record_time=_parse_str(root, f'{nss}timeRef/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
+        record_time=_parse_str(root, [f'{nss}timeRef/{nss}recordTime/{nss}TimeInstant/{nss}timePosition',
+                                      f'{nss}timeRef/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition']),
         record_period=(
             _parse_str(root, f'{nss}timeRef/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
             _parse_str(root, f'{nss}timeRef/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
@@ -116,11 +117,12 @@ def read_caaml6_xml(filename):
         additional_data=_parse_additional_data(root.find(f'{nss}locRef/{nss}customData')))
 
     # - Environment
+    base = f'{nss}snowProfileResultsOf/{nss}SnowProfileMeasurements/{nss}weatherCond'
     environment = Environment(
         solar_mask=_parse_solar_mask(root.find(f'{nss}locRef/{nss}solarMask'), nss=nss),
         solar_mask_method_of_measurement=_parse_str(root, f'{nss}locRef/{nss}solarMask/{nss}solarMaskMetaData/{nss}methodOfMeas'),
         solar_mask_uncertainty=_parse_numeric(root, f'{nss}locRef/{nss}solarMask/{nss}solarMaskMetaData/{nss}uncertaintyOfMeas'),
-        solar_mask_quality=_parse_numeric(root, f'{nss}locRef/{nss}solarMask/{nss}solarMaskMetaData/{nss}qualityOfMeas'),
+        solar_mask_quality=_parse_str(root, f'{nss}locRef/{nss}solarMask/{nss}solarMaskMetaData/{nss}qualityOfMeas'),
         solar_mask_comment=_parse_str(root, f'{nss}locRef/{nss}solarMask/{nss}solarMaskMetaData/{nss}comment'),
         solar_mask_additional_data=_parse_additional_data(root.find(f'{nss}locRef/{nss}solarMask/{nss}customData')),
         bed_surface=_parse_str(root, f'{nss}locRef/{nss}obsPointEnvironment/{nss}bedSurface'),
@@ -185,52 +187,49 @@ def read_caaml6_xml(filename):
         surface_features_wavelength=_parse_numeric(
             root,
             f'{base}/{nss}surfFeatures/{nss}Components/{nss}validWavelength/{nss}WavelengthPosition/{nss}position',
-            factor=0.01),  # cm -> m
+            factor=1),  # m
         surface_features_wavelength_min=_parse_numeric(
             root,
             f'{base}/{nss}surfFeatures/{nss}Components/{nss}validWavelength/{nss}WavelengthRange/{nss}beginPosition',
-            factor=0.01),  # cm -> m
+            factor=1),  # m
         surface_features_wavelength_max=_parse_numeric(
             root,
             f'{base}/{nss}surfFeatures/{nss}Components/{nss}validWavelength/{nss}WavelengthRange/{nss}endPosition',
-            factor=0.01),  # cm -> m
+            factor=1),  # m
         surface_features_aspect=_parse_numeric(
             root,
-            f'{base}/{nss}surfFeatures/{nss}Components/{nss}validAspect/{nss}position'),
+            f'{base}/{nss}surfFeatures/{nss}Components/{nss}validAspect/{nss}AspectPosition/{nss}position'),
         penetration_ram=_parse_numeric(
             root,
-            f'{base}/{nss}surfFeatures/{nss}penetrationRam',
+            f'{base}/{nss}penetrationRam',
             factor=0.01),  # cm -> m
         penetration_foot=_parse_numeric(
             root,
-            f'{base}/{nss}surfFeatures/{nss}penetrationFoot',
+            f'{base}/{nss}penetrationFoot',
             factor=0.01),  # cm -> m
         penetration_ski=_parse_numeric(
             root,
-            f'{base}/{nss}surfFeatures/{nss}penetrationSki',
+            f'{base}/{nss}penetrationSki',
             factor=0.01),  # cm -> m
         lap_presence=_parse_str(
             root,
-            f'{base}/{nss}surfFeatures/{nss}lapPresence'),
+            f'{base}/{nss}surfFeatures/{nss}Components/{nss}lapPresence'),
         surface_temperature=_parse_numeric(
             root,
-            f'{base}/{nss}surfFeatures/{nss}surfTemp/{nss}data'),
-        surface_temperature_measurement_method=_parse_numeric(
+            f'{base}/{nss}surfFeatures/{nss}Components/{nss}surfTemp/{nss}data'),
+        surface_temperature_measurement_method=_parse_str(
             root,
-            f'{base}/{nss}surfFeatures/{nss}surfTemp/{nss}methodOfMeas'),
+            f'{base}/{nss}surfFeatures/{nss}Components/{nss}surfTemp/{nss}methodOfMeas'),
         surface_albedo=_parse_numeric(
             root,
-            f'{base}/{nss}surfFeatures/{nss}surfAlbedo/{nss}albedo/{nss}albedoMeasurement'),
+            f'{base}/{nss}surfFeatures/{nss}Components/{nss}surfAlbedo/{nss}albedo/{nss}albedoMeasurement'),
         surface_albedo_comment=_parse_str(
             root,
-            f'{base}/{nss}surfFeatures/{nss}surfAlbedo/{nss}albedo/{nss}metaData/{nss}comment'),
+            f'{base}/{nss}surfFeatures/{nss}Components/{nss}surfAlbedo/{nss}albedo/{nss}metaData/{nss}comment'),
         spectral_albedo=_parse_spectral_albedo(
             root.find(
-                f'{base}/{nss}surfFeatures/{nss}surfAlbedo/{nss}spectralAlbedo'),
+                f'{base}/{nss}surfFeatures/{nss}Components/{nss}surfAlbedo/{nss}spectralAlbedo'),
             nss=nss),
-        spectral_albedo_comment=_parse_str(
-            root,
-            f'{base}/{nss}surfFeatures/{nss}surfAlbedo/{nss}spectralAlbedo/{nss}metaData/{nss}comment'),
         comment=_parse_str(
             root,
             f'{base}/{nss}metaData/{nss}comment'),
@@ -300,7 +299,7 @@ def read_caaml6_xml(filename):
             f'{base}/{nss}snowTransport'),
         snow_transport_occurence_24=_parse_numeric(
             root,
-            f'{base}/{nss}snowTransportOccurence24'),
+            f'{base}/{nss}snowTransportOccurrence24'),
         stratigraphy_profile = _parse_stratigraphy(
             root.findall(f'{nss}snowProfileResultsOf/{nss}SnowProfileMeasurements/{nss}stratProfile'),
             nss=nss, profile_depth=profile_depth),
@@ -349,7 +348,7 @@ def _parse_contact_person(p, nss='', ns=None):
     return Person(
         id=_search_gml_id(p),
         name=_parse_str(p, f'{nss}name'),
-        comment=_parse_str(p, '{nss}metaData/{nss}comment'),
+        comment=_parse_str(p, f'{nss}metaData/{nss}comment'),
         additional_data=_parse_additional_data(p.find(f'{nss}customData')))
 
 
@@ -378,13 +377,15 @@ def _parse_spectral_albedo(sa_element, nss=''):
     data = _parse_generic_profile(
         e.findall(f'{nss}spectralAlbedoMeasurement'),
         {'min_wavelength': {'path': f'{nss}minWaveLength', 'type': 'numeric'},
-         'max_wavelength': {'path': f'{nss}minWaveLength', 'type': 'numeric'},
+         'max_wavelength': {'path': f'{nss}maxWaveLength', 'type': 'numeric'},
          'albedo': {'path': f'{nss}albedo', 'type': 'numeric'},
          'uncertainty': {'path': f'{nss}albedo', 'type': 'numeric', 'attribute': '{nss}uncertainty'},
          'quality': {'path': f'{nss}albedo', 'type': 'str', 'attribute': '{nss}quality'},
          },
         nss=nss)
-    sm = SpectralAlbedo(data=data)
+    sm = SpectralAlbedo(
+        data=data,
+        comment=_parse_str(e, f'{nss}metaData/{nss}comment'))
     return sm
 
 
@@ -434,14 +435,14 @@ def _parse_stratigraphy(elements, nss='', profile_depth=0):
         profile_depth_local = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}height',
                                              factor=0.01)  # cm -> m
         if profile_depth_local is not None:
-            profile_depth = profile_depth_local
-        if profile_depth is None:
-            profile_depth = 0
+            _profile_depth = profile_depth_local
+        else:
+            _profile_depth = profile_depth if profile_depth is not None else 0
 
         data = _parse_generic_profile(
             elem.findall(f'{nss}Layer'),
             {'top_height': {'path': f'{nss}depthTop', 'type': 'numeric',
-                            'numeric_factor': 0.01, 'adapt_total_depth': profile_depth},
+                            'numeric_factor': 0.01, 'adapt_total_depth': _profile_depth},
              'thickness': {'path': f'{nss}thickness', 'type': 'numeric',
                            'numeric_factor': 0.01},  # cm -> m
              'grain_1': {'path': f'{nss}grainFormPrimary', 'type': 'str'},
@@ -472,8 +473,8 @@ def _parse_stratigraphy(elements, nss='', profile_depth=0):
             comment = _parse_str(elem, f'{mdk}/{nss}comment'),
             record_time = _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
             record_period = (
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}beginPosition'),
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}endPosition')),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
             profile_depth = profile_depth_local,
             profile_swe = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}waterEquivalent'),
             additional_data = _parse_additional_data(elem.find(f'{nss}customData')),
@@ -499,14 +500,14 @@ def _parse_temperature_profiles(elements, nss='', profile_depth=0):
         profile_depth_local = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}height',
                                              factor=0.01)  # cm -> m
         if profile_depth_local is not None:
-            profile_depth = profile_depth_local
-        if profile_depth is None:
-            profile_depth = 0
+            _profile_depth = profile_depth_local
+        else:
+            _profile_depth = profile_depth if profile_depth is not None else 0
 
         data = _parse_generic_profile(
             elem.findall(f'{nss}Obs'),
             {'height': {'path': f'{nss}depth', 'type': 'numeric',
-                        'numeric_factor': 0.01, 'adapt_total_depth': profile_depth},
+                        'numeric_factor': 0.01, 'adapt_total_depth': _profile_depth},
              'temperature': {'path': f'{nss}snowTemp', 'type': 'numeric'},
              'uncertainty': {'path': f'{nss}uncertaintyOfMeas', 'type': 'str'},
              'quality': {'path': f'{nss}qualityOfMeas', 'type': 'str'}},
@@ -524,8 +525,8 @@ def _parse_temperature_profiles(elements, nss='', profile_depth=0):
             uncertainty_of_measurement = _parse_numeric(elem, f'{nss}tempMetaData/{nss}uncertaintyOfMeas'),
             record_time = _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
             record_period = (
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}beginPosition'),
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}endPosition')),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
             profile_depth = profile_depth_local,
             profile_swe = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}waterEquivalent'),
             additional_data = _parse_additional_data(elem.find(f'{nss}customData')),
@@ -551,14 +552,14 @@ def _parse_density_profiles(elements, nss='', profile_depth=0):
         profile_depth_local = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}height',
                                              factor=0.01)  # cm -> m
         if profile_depth_local is not None:
-            profile_depth = profile_depth_local
-        if profile_depth is None:
-            profile_depth = 0
+            _profile_depth = profile_depth_local
+        else:
+            _profile_depth = profile_depth if profile_depth is not None else 0
 
         data = _parse_generic_profile(
             elem.findall(f'{nss}Layer'),
             {'top_height': {'path': f'{nss}depthTop', 'type': 'numeric',
-                            'numeric_factor': 0.01, 'adapt_total_depth': profile_depth},
+                            'numeric_factor': 0.01, 'adapt_total_depth': _profile_depth},
              'thickness': {'path': f'{nss}thickness', 'type': 'numeric',
                            'numeric_factor': 0.01},  # cm -> m
              'density': {'path': f'{nss}density', 'type': 'numeric'},
@@ -582,8 +583,8 @@ def _parse_density_profiles(elements, nss='', profile_depth=0):
             probed_thickness = _parse_numeric(elem, f'{mdk}/{nss}probedThickness', factor=0.01),
             record_time = _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
             record_period = (
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}beginPosition'),
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}endPosition')),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
             profile_depth = profile_depth_local,
             profile_swe = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}waterEquivalent'),
             additional_data = _parse_additional_data(elem.find(f'{nss}customData')),
@@ -609,14 +610,14 @@ def _parse_lwc_profiles(elements, nss='', profile_depth=0):
         profile_depth_local = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}height',
                                              factor=0.01)  # cm -> m
         if profile_depth_local is not None:
-            profile_depth = profile_depth_local
-        if profile_depth is None:
-            profile_depth = 0
+            _profile_depth = profile_depth_local
+        else:
+            _profile_depth = profile_depth if profile_depth is not None else 0
 
         data = _parse_generic_profile(
             elem.findall(f'{nss}Layer'),
             {'top_height': {'path': f'{nss}depthTop', 'type': 'numeric',
-                            'numeric_factor': 0.01, 'adapt_total_depth': profile_depth},
+                            'numeric_factor': 0.01, 'adapt_total_depth': _profile_depth},
              'thickness': {'path': f'{nss}thickness', 'type': 'numeric',
                            'numeric_factor': 0.01},  # cm -> m
              'lwc': {'path': f'{nss}lwc', 'type': 'numeric'},
@@ -637,8 +638,8 @@ def _parse_lwc_profiles(elements, nss='', profile_depth=0):
             probed_thickness = _parse_numeric(elem, f'{mdk}/{nss}probedThickness', factor=0.01),
             record_time = _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
             record_period = (
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}beginPosition'),
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}endPosition')),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
             profile_depth = profile_depth_local,
             profile_swe = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}waterEquivalent'),
             additional_data = _parse_additional_data(elem.find(f'{nss}customData')),
@@ -664,9 +665,9 @@ def _parse_ssa_profiles(elements, nss='', profile_depth=0):
         profile_depth_local = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}height',
                                              factor=0.01)  # cm -> m
         if profile_depth_local is not None:
-            profile_depth = profile_depth_local
-        if profile_depth is None:
-            profile_depth = 0
+            _profile_depth = profile_depth_local
+        else:
+            _profile_depth = profile_depth if profile_depth is not None else 0
 
         metadata = dict(
             id=_search_gml_id(elem),
@@ -680,8 +681,8 @@ def _parse_ssa_profiles(elements, nss='', profile_depth=0):
             probed_thickness = _parse_numeric(elem, f'{mdk}/{nss}probedThickness', factor=0.01),
             record_time = _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
             record_period = (
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}beginPosition'),
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}endPosition')),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
             profile_depth = profile_depth_local,
             profile_swe = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}waterEquivalent'),
             additional_data = _parse_additional_data(elem.find(f'{nss}customData')))
@@ -692,7 +693,7 @@ def _parse_ssa_profiles(elements, nss='', profile_depth=0):
         data1 = _parse_generic_profile(
             elem.findall(f'{nss}Layer'),
             {'top_height': {'path': f'{nss}depthTop', 'type': 'numeric',
-                            'numeric_factor': 0.01, 'adapt_total_depth': profile_depth},
+                            'numeric_factor': 0.01, 'adapt_total_depth': _profile_depth},
              'thickness': {'path': f'{nss}thickness', 'type': 'numeric',
                            'numeric_factor': 0.01},  # cm -> m
              'ssa': {'path': f'{nss}specSurfArea', 'type': 'numeric'},
@@ -717,7 +718,7 @@ def _parse_ssa_profiles(elements, nss='', profile_depth=0):
                     if len(x.strip()) == 0:
                         continue
                     _tuple = x.split(',')
-                    _height = profile_depth - float(_tuple[0]) / 100
+                    _height = _profile_depth - float(_tuple[0]) / 100
                     _ssa = float(tuple[1])
                     height.append(_height)
                     ssa.append(_ssa)
@@ -754,9 +755,9 @@ def _parse_hardness_profiles(elements, nss='', profile_depth=0):
         profile_depth_local = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}height',
                                              factor=0.01)  # cm -> m
         if profile_depth_local is not None:
-            profile_depth = profile_depth_local
-        if profile_depth is None:
-            profile_depth = 0
+            _profile_depth = profile_depth_local
+        else:
+            _profile_depth = profile_depth if profile_depth is not None else 0
 
         metadata = dict(
             id=_search_gml_id(elem),
@@ -771,8 +772,8 @@ def _parse_hardness_profiles(elements, nss='', profile_depth=0):
             penetration_speed = _parse_numeric(elem, f'{mdk}/{nss}penetrationSpeed', factor=1),
             record_time = _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
             record_period = (
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}beginPosition'),
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}endPosition')),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
             profile_depth = profile_depth_local,
             profile_swe = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}waterEquivalent'),
             additional_data = _parse_additional_data(elem.find(f'{nss}customData')))
@@ -783,7 +784,7 @@ def _parse_hardness_profiles(elements, nss='', profile_depth=0):
         data1 = _parse_generic_profile(
             elem.findall(f'{nss}Layer'),
             {'top_height': {'path': f'{nss}depthTop', 'type': 'numeric',
-                            'numeric_factor': 0.01, 'adapt_total_depth': profile_depth},
+                            'numeric_factor': 0.01, 'adapt_total_depth': _profile_depth},
              'thickness': {'path': f'{nss}thickness', 'type': 'numeric',
                            'numeric_factor': 0.01},  # cm -> m
              'hardness': {'path': f'{nss}hardness', 'type': 'numeric'},
@@ -811,16 +812,16 @@ def _parse_hardness_profiles(elements, nss='', profile_depth=0):
                     if len(x.strip()) == 0:
                         continue
                     _tuple = x.split(',')
-                    _height = profile_depth - float(_tuple[0]) / 100
+                    _height = _profile_depth - float(_tuple[0]) / 100
                     _res = float(tuple[1])
                     height.append(_height)
                     res.append(_res)
             except IndexError:
-                logging.error('Could not parse the SSA Profile. tupleList is not well formatted '
+                logging.error('Could not parse the Hardness Profile. tupleList is not well formatted '
                               '(not two element at least in the tuple List (depth adn SSA).'
                               f' Value: {_tuple}')
             except ValueError:
-                logging.error('Could not parse the SSA Profile. tupleList is not well formatted '
+                logging.error('Could not parse the Hardness Profile. tupleList is not well formatted '
                               '(element of the tuple list that is not recognized as a float value).'
                               f' Value: {_tuple}')
         if len(height) > 0:
@@ -848,14 +849,14 @@ def _parse_strength_profiles(elements, nss='', profile_depth=0):
         profile_depth_local = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}height',
                                              factor=0.01)  # cm -> m
         if profile_depth_local is not None:
-            profile_depth = profile_depth_local
-        if profile_depth is None:
-            profile_depth = 0
+            _profile_depth = profile_depth_local
+        else:
+            _profile_depth = profile_depth if profile_depth is not None else 0
 
         data = _parse_generic_profile(
             elem.findall(f'{nss}Layer'),
             {'top_height': {'path': f'{nss}depthTop', 'type': 'numeric',
-                            'numeric_factor': 0.01, 'adapt_total_depth': profile_depth},
+                            'numeric_factor': 0.01, 'adapt_total_depth': _profile_depth},
              'thickness': {'path': f'{nss}thickness', 'type': 'numeric',
                            'numeric_factor': 0.01},  # cm -> m
              'strength': {'path': f'{nss}strengthValue', 'type': 'numeric'},
@@ -878,8 +879,8 @@ def _parse_strength_profiles(elements, nss='', profile_depth=0):
             strength_type = _parse_str(elem, f'{mdk}/{nss}strengthType'),
             record_time = _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
             record_period = (
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}beginPosition'),
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}endPosition')),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
             profile_depth = profile_depth_local,
             profile_swe = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}waterEquivalent'),
             additional_data = _parse_additional_data(elem.find(f'{nss}customData')),
@@ -905,14 +906,14 @@ def _parse_impurity_profiles(elements, nss='', profile_depth=0):
         profile_depth_local = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}height',
                                              factor=0.01)  # cm -> m
         if profile_depth_local is not None:
-            profile_depth = profile_depth_local
-        if profile_depth is None:
-            profile_depth = 0
+            _profile_depth = profile_depth_local
+        else:
+            _profile_depth = profile_depth if profile_depth is not None else 0
 
         data = _parse_generic_profile(
             elem.findall(f'{nss}Layer'),
             {'top_height': {'path': f'{nss}depthTop', 'type': 'numeric',
-                            'numeric_factor': 0.01, 'adapt_total_depth': profile_depth},
+                            'numeric_factor': 0.01, 'adapt_total_depth': _profile_depth},
              'thickness': {'path': f'{nss}thickness', 'type': 'numeric',
                            'numeric_factor': 0.01},  # cm -> m
              'mass_fraction': {'path': f'{nss}massFraction', 'type': 'numeric'},
@@ -934,14 +935,14 @@ def _parse_impurity_profiles(elements, nss='', profile_depth=0):
             method_of_measurement = _parse_str(elem, f'{mdk}/{nss}methodOfMeas'),
             quality_of_measurement = _parse_str(elem, f'{mdk}/{nss}qualityOfMeas'),
             uncertainty_of_measurement = _parse_numeric(elem, f'{mdk}/{nss}uncertaintyOfMeas'),
-            probed_volume = _parse_numeric(elem, f'{mdk}/{nss}probeVolume', factor=1e-6),
-            probed_diameter = _parse_numeric(elem, f'{mdk}/{nss}probeDiameter', factor=0.01),
-            probed_length = _parse_numeric(elem, f'{mdk}/{nss}probeLength', factor=0.01),
+            probed_volume = _parse_numeric(elem, f'{mdk}/{nss}probedVolume', factor=1e-6),
+            probed_diameter = _parse_numeric(elem, f'{mdk}/{nss}probedDiameter', factor=0.01),
+            probed_length = _parse_numeric(elem, f'{mdk}/{nss}probedLength', factor=0.01),
             probed_thickness = _parse_numeric(elem, f'{mdk}/{nss}probedThickness', factor=0.01),
             record_time = _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
             record_period = (
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}beginPosition'),
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}endPosition')),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
             profile_depth = profile_depth_local,
             profile_swe = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}waterEquivalent'),
             additional_data = _parse_additional_data(elem.find(f'{nss}customData')),
@@ -967,14 +968,14 @@ def _parse_other_scalar_profiles(elements, nss='', profile_depth=0):
         profile_depth_local = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}height',
                                              factor=0.01)  # cm -> m
         if profile_depth_local is not None:
-            profile_depth = profile_depth_local
-        if profile_depth is None:
-            profile_depth = 0
+            _profile_depth = profile_depth_local
+        else:
+            _profile_depth = profile_depth if profile_depth is not None else 0
 
         data = _parse_generic_profile(
             elem.findall(f'{nss}Layer'),
             {'top_height': {'path': f'{nss}depthTop', 'type': 'numeric',
-                            'numeric_factor': 0.01, 'adapt_total_depth': profile_depth},
+                            'numeric_factor': 0.01, 'adapt_total_depth': _profile_depth},
              'thickness': {'path': f'{nss}thickness', 'type': 'numeric',
                            'numeric_factor': 0.01},  # cm -> m
              'data': {'path': f'{nss}value', 'type': 'numeric'},
@@ -997,8 +998,8 @@ def _parse_other_scalar_profiles(elements, nss='', profile_depth=0):
             uncertainty_of_measurement = _parse_numeric(elem, f'{mdk}/{nss}uncertaintyOfMeas'),
             record_time = _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
             record_period = (
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}beginPosition'),
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}endPosition')),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
             profile_depth = profile_depth_local,
             profile_swe = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}waterEquivalent'),
             additional_data = _parse_additional_data(elem.find(f'{nss}customData')),
@@ -1024,14 +1025,14 @@ def _parse_other_vectorial_profiles(elements, nss='', profile_depth=0):
         profile_depth_local = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}height',
                                              factor=0.01)  # cm -> m
         if profile_depth_local is not None:
-            profile_depth = profile_depth_local
-        if profile_depth is None:
-            profile_depth = 0
+            _profile_depth = profile_depth_local
+        else:
+            _profile_depth = profile_depth if profile_depth is not None else 0
 
         data = _parse_generic_profile(
             elem.findall(f'{nss}Layer'),
             {'top_height': {'path': f'{nss}depthTop', 'type': 'numeric',
-                            'numeric_factor': 0.01, 'adapt_total_depth': profile_depth},
+                            'numeric_factor': 0.01, 'adapt_total_depth': _profile_depth},
              'thickness': {'path': f'{nss}thickness', 'type': 'numeric',
                            'numeric_factor': 0.01},  # cm -> m
              'data': {'path': f'{nss}value', 'type': 'numeric_list'},
@@ -1055,8 +1056,8 @@ def _parse_other_vectorial_profiles(elements, nss='', profile_depth=0):
             uncertainty_of_measurement = _parse_numeric(elem, f'{mdk}/{nss}uncertaintyOfMeas'),
             record_time = _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimeInstant/{nss}timePosition'),
             record_period = (
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}beginPosition'),
-                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePnstant/{nss}endPosition')),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}beginPosition'),
+                _parse_str(elem, f'{mdk}/{nss}recordTime/{nss}TimePeriod/{nss}endPosition')),
             profile_depth = profile_depth_local,
             profile_swe = _parse_numeric(elem, f'{mdk}/{nss}hS/{nss}Components/{nss}waterEquivalent'),
             additional_data = _parse_additional_data(elem.find(f'{nss}customData')),

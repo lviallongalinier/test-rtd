@@ -26,6 +26,7 @@ class Person(pydantic.BaseModel):
 
     id: typing.Optional[str] = None
     name: typing.Optional[str] = None
+    website : typing.Optional[str] = None
     comment: typing.Optional[str] = None
     additional_data: typing.Optional[AdditionalData] = None
 
@@ -93,6 +94,7 @@ class Observer(pydantic.BaseModel, BaseMergeable):
 
     source_id: typing.Optional[str] = conf.get('DEFAULT', 'observer_id', fallback=None)
     source_name: typing.Optional[str] = conf.get('DEFAULT', 'observer_name', fallback=None)
+    source_website: typing.Optional[str] = None
     source_comment: typing.Optional[str] = conf.get('DEFAULT', 'observer_comment', fallback=None)
     source_additional_data: typing.Optional[AdditionalData] = None
 
@@ -330,7 +332,7 @@ class SolarMask(pydantic.BaseModel, BaseData):
 
     The data contains:
 
-    - ``azimut`` (degrees from north)
+    - ``azimuth`` (degrees from north)
     - ``elevation`` (in degrees from horizontal)
     """
     model_config = pydantic.ConfigDict(
@@ -340,7 +342,7 @@ class SolarMask(pydantic.BaseModel, BaseData):
 
     _data_config = dict(
         _mode='None',
-        azimut=dict(min=0, max=360),
+        azimuth=dict(min=0, max=360),
         elevation=dict(min=-90, max=90),
     )
 
@@ -467,7 +469,6 @@ class SurfaceConditions(pydantic.BaseModel, BaseMergeable):
     surface_albedo: typing.Optional[float] = None
     surface_albedo_comment: typing.Optional[str] = None
     spectral_albedo: typing.Optional[SpectralAlbedo] = None
-    spectral_albedo_comment: typing.Optional[str] = None
     penetration_ram: typing.Optional[float] = pydantic.Field(None, ge=0)
     penetration_foot: typing.Optional[float] = pydantic.Field(None, ge=0)
     penetration_ski: typing.Optional[float] = pydantic.Field(None, ge=0)
@@ -480,7 +481,7 @@ class Environment(pydantic.BaseModel, BaseMergeable):
     Description of the site environment (independantly of the observation date).
 
     solar_mask
-      The solar mask at the observation site. Pandas dataframe with keys azimut (degrees from north)
+      The solar mask at the observation site. :py:class:`snowprofile.classes.SolarMask` object.
       and elevation (degrees above horizon).
 
     solar_mask_method_of_measurement
