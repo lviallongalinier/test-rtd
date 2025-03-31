@@ -3,6 +3,7 @@
 import logging
 import datetime
 import xml.etree.ElementTree as ET
+import sys
 
 import numpy as np
 
@@ -17,7 +18,7 @@ table_versions_uri = {
 uri_gml = 'http://www.opengis.net/gml'
 
 
-def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
+def write_caaml6_xml(snowprofile, filename, version='6.0.5', indent=False):
     """
     Write a SnowProfile object into a CAAML 6 XML-based IACS Snow Profile document.
 
@@ -30,6 +31,8 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     :type snowprofile: SnowProfile
     :param filename: The filename to write into. If already exists, will be overwritten.
     :type filename: str
+    :param indent: Visually indent the output (default: False, provide the more compact outut available)
+    :type indent: bool or string (spaces for indentation)
     """
     if version not in table_versions_uri:
         raise ValueError(f'Unsupported CAAML version {version}.')
@@ -284,12 +287,12 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
         _ = ET.SubElement(e_weather_metadata, f'{ns}airTempMeasurementHeight', attrib={'uom': 'm'})
         _.text = "{:.10g}".format(s_weather.air_temperature_measurement_height)
     elif s_weather.air_temperature_measurement_height is not None:
-        comment += f'Height of the temperature measurement: {s_weather.air_temperature_measurement_height}m'
+        comment += f'Height of the temperature measurement: {s_weather.air_temperature_measurement_height}m\n'
     if s_weather.wind_measurement_height is not None and version >= "6.0.6":
         _ = ET.SubElement(e_weather_metadata, f'{ns}windMeasurementHeight', attrib={'uom': 'm'})
         _.text = "{:.10g}".format(s_weather.wind_measurement_height)
     elif s_weather.wind_measurement_height is not None:
-        comment += f'Height of the wind measurement: {s_weather.wind_measurement_height}m'
+        comment += f'Height of the wind measurement: {s_weather.wind_measurement_height}m\n'
     if s_weather.comment is not None or len(comment) > 1:
         if s_weather.comment is not None and len(comment) == 0:
             comment = s_weather.comment
@@ -569,6 +572,11 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5'):
     # Generate Tree from mail element and write
     #
     tree = ET.ElementTree(root)
+    if indent:
+        if sys.version_info.major == 3 and sys.version_info.minor >= 9:
+            if isinstance(indent, bool) and indent is True:
+                indent = '  '
+            ET.indent(tree, space=indent)
     tree.write(filename, encoding='utf-8',
                xml_declaration=True)
 
