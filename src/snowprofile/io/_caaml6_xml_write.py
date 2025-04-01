@@ -213,7 +213,7 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5', indent=False):
                 _.text = env.solar_mask_method_of_measurement
             if env.solar_mask_uncertainty:
                 _ = ET.SubElement(e_smm, f'{ns}uncertaintyOfMeas')
-                _.text = str(int(env.solar_mask_uncertainty))
+                _.text = "{:.12g}".format(env.solar_mask_uncertainty)
             if env.solar_mask_quality:
                 _ = ET.SubElement(e_smm, f'{ns}qualityOfMeas')
                 _.text = env.solar_mask_quality
@@ -223,7 +223,7 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5', indent=False):
                 _ = ET.SubElement(e_, f'{ns}azimuth')
                 _.text = str(int(dataline.azimuth))
                 _ = ET.SubElement(e_, f'{ns}elevation')
-                _.text = str(int(dataline.elevation))
+                _.text = "{:.12g}".format(dataline.elevation)
 
             _append_additional_data(e_sm, snowprofile.environment.solar_mask_additional_data)
 
@@ -309,6 +309,9 @@ def write_caaml6_xml(snowprofile, filename, version='6.0.5', indent=False):
     if s_weather.air_temperature is not None:
         _ = ET.SubElement(e_weather, f'{ns}airTempPres', attrib={'uom': 'degC'})
         _.text = "{:.10g}".format(s_weather.air_temperature)
+    if s_weather.air_humidity is not None and version >= "6.0.6":
+        _ = ET.SubElement(e_weather, f'{ns}airHumPres')
+        _.text = "{:.10g}".format(s_weather.air_humidity)
     if s_weather.wind_speed is not None:
         _ = ET.SubElement(e_weather, f'{ns}windSpd', attrib={'uom': 'ms-1'})
         _.text = "{:.10g}".format(s_weather.wind_speed)
