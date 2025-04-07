@@ -102,6 +102,7 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
+html_css_files = ['custom.css']
 html_favicon = '_static/snow.ico'
 
 

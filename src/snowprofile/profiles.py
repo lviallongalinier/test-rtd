@@ -98,7 +98,8 @@ class TemperatureProfile(BaseProfile2):
 
     and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
-    method_of_measurement: typing.Optional[str] = None
+    method_of_measurement: typing.Optional[typing.Literal[
+        "Thermometer", "IR thermometer", "IR photography", "other"]] = None
     _data_config = dict(
         _mode='Point',
         temperature=dict(max=0),
@@ -135,7 +136,7 @@ class DensityProfile(BaseProfile2):
         description="Probe volume (m3)")
     probed_diameter: typing.Optional[float] = pydantic.Field(
         None,
-        description="Probe volume (m)")
+        description="Probe diameter (m)")
     probed_length: typing.Optional[float] = pydantic.Field(
         None,
         description="Probe length (m)")
