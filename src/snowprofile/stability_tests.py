@@ -35,7 +35,7 @@ class _StabilityTest(pydantic.BaseModel):
         description="A comment associated to the profile")
     additional_data: typing.Optional[AdditionalData] = pydantic.Field(
         None,
-        description="Room to store additional data for CAAML compatibility (customData), do not use.")
+        description="Field to store additional data for CAAML compatibility (customData), do not use.")
 
 
 class _StabilityTestResult(pydantic.BaseModel):
@@ -49,39 +49,40 @@ class _StabilityTestResult(pydantic.BaseModel):
 
     height: typing.Optional[float] = pydantic.Field(
         None,
-        description="height of the broken layer (with zero at bottom of the snowpack, in m)")
+        description="Height of the failed layer (with zero at bottom of the snowpack (m)")
     layer_thickness: typing.Optional[float] = pydantic.Field(
         None,
-        description="Thickness of the broken layer, the height field being the top of this layer")
+        description="Thickness of the failed layer (m)")
     grain_1: typing.Optional[typing.Literal[tuple(GRAIN_SHAPES)]] = pydantic.Field(
         None,
-        description="Main grain shape of the broken layer")
+        description="Primary grain shape of the failed layer")
     grain_2: typing.Optional[typing.Literal[tuple(GRAIN_SHAPES)]] = pydantic.Field(
         None,
-        description="Secondary grain shape of the broken layer")
+        description="Secondary grain shape of the failed layer")
     grain_size: typing.Optional[float] = pydantic.Field(
         None,
-        description="Grain size in the broken layer")
+        description="Snow grain size of the failed layer (m)")
     grain_size_max: typing.Optional[float] = pydantic.Field(
         None,
-        description="Maximum Grain size in the broken layer")
+        description="Maximum snow grain size of the failed layer (m)")
     layer_formation_time: typing.Optional[datetime_with_tz] = pydantic.Field(
         None,
-        description="The formation time of the broken layer.")
+        description="The formation time of the failed layer.")
     layer_formation_period: typing.Optional[datetime_tuple_with_tz] = pydantic.Field(
         (None, None),
-        description="The formation period (begin, end) of the broken layer.")
+        description="The formation period (begin, end) of the failed layer.")
     layer_comment: typing.Optional[str] = pydantic.Field(
         None,
         description="Comment associated to layer description (for CAAML compatibility only, do not fill).")
     layer_additional_data: typing.Optional[AdditionalData] = pydantic.Field(
         None,
-        description="Room to store additional data for CAAML compatibility (customData), do not use.")
+        description="Field to store additional data for CAAML compatibility (customData), do not use.")
 
 
 class RBStabilityTestResult(_StabilityTestResult):
     """
     Class for RB (Rutschblock) stability test results.
+   
     """
     model_config = pydantic.ConfigDict(
         validate_assignment=True,
@@ -102,7 +103,20 @@ class RBStabilityTestResult(_StabilityTestResult):
         'Clean', 'Rough', 'Irregular',
         'Q1', 'Q2', 'Q3']] = pydantic.Field(
             None,
-            description="")
+            description="Fracture characteristic among: \n\n"
+            "- SP: Sudden planar\n"
+        "- SC: Sudden collapse\n"
+        "- SDN: Sudden (both)\n"
+        "- RP: Resistant planar\n"
+        "- PC: Progressive compression\n"
+        "- RES: Resistant (both)\n"
+        "- BRK or B: Break\n"
+        "- Clean\n"
+        "- Rough\n"
+        "- Irregular\n"
+        "- Q1\n"
+        "- Q2\n"
+        "- Q3")
 
 
 class RBStabilityTest(_StabilityTest):
@@ -132,7 +146,20 @@ class CTStabilityTestResult(_StabilityTestResult):
         'Clean', 'Rough', 'Irregular',
         'Q1', 'Q2', 'Q3']] = pydantic.Field(
             None,
-            description="")
+            description="Fracture characteristic among: \n\n"
+            "- SP: Sudden planar\n"
+        "- SC: Sudden collapse\n"
+        "- SDN: Sudden (both)\n"
+        "- RP: Resistant planar\n"
+        "- PC: Progressive compression\n"
+        "- RES: Resistant (both)\n"
+        "- BRK or B: Break\n"
+        "- Clean\n"
+        "- Rough\n"
+        "- Irregular\n"
+        "- Q1\n"
+        "- Q2\n"
+        "- Q3")
 
 
 class CTStabilityTest(_StabilityTest):
@@ -180,7 +207,7 @@ class PSTStabilityTest(_StabilityTest, _StabilityTestResult):
         description="Propagation type: \n\n"
         "- End means the fracture propagate through the end of the column,\n"
         "- SF means slab fracture,\n"
-        "- Arr arrest of the propagation before the end of the column.")
+        "- Arr means arrest of the propagation before the end of the column.")
     type: typing.Literal['PST'] = 'PST'
 
 
@@ -200,7 +227,20 @@ class ShearFrameStabilityTestResult(_StabilityTestResult):
         'Clean', 'Rough', 'Irregular',
         'Q1', 'Q2', 'Q3']] = pydantic.Field(
             None,
-            description="")
+            description="Fracture characteristic among: \n\n"
+            "- SP: Sudden planar\n"
+        "- SC: Sudden collapse\n"
+        "- SDN: Sudden (both)\n"
+        "- RP: Resistant planar\n"
+        "- PC: Progressive compression\n"
+        "- RES: Resistant (both)\n"
+        "- BRK or B: Break\n"
+        "- Clean\n"
+        "- Rough\n"
+        "- Irregular\n"
+        "- Q1\n"
+        "- Q2\n"
+        "- Q3")
 
 
 class ShearFrameStabilityTest(_StabilityTest):
