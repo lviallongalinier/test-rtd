@@ -12,42 +12,45 @@ __all__ = ['Stratigraphy',
            'TemperatureProfile', 'DensityProfile', 'LWCProfile',
            'SSAProfile', 'SSAPointProfile',
            'HardnessProfile', 'HardnessPointProfile',
-           'RamSondeProfile', 'StrengthProfile', 'ImpurityProfile',
+           'StrengthProfile', 'ImpurityProfile',
            'ScalarProfile', 'VectorialProfile']
 
 
 class Stratigraphy(BaseProfile):
     """
-    Stratigraphic measurement per layer:
+    Measurements of the snowpack stratigraphy, according to the international snowpack classification,
+    Fierz et al. 2009.
 
-    - Grain shape
-    - hardness, on the scale (intermediates are allowed, details in Fierz et al., 2009):
-        - F: Fist (1)
-        - 4F : 4 Fingers (2)
-        - 1F : 1 finger (3)
-        - P : Pencil (4)
-        - K : Knife (5)
-    - wetness, on the scale (intermediates are allowed, details in Fierz et al., 2009):
-        - D : Dry (1)
-        - M : Moist (2)
-        - W : Wet (3)
-        - V : Very wet (4)
-        - S : Soaked (5)
+    The ``data`` key contains:
 
-    The data contains:
-
-    - ``top_height``
-    - ``bottom_height``
-    - ``thickness``
-    - ``grain_1``
-    - ``grain_2``
-    - ``grain_size``
-    - ``grain_size_max``
-    - ``hardness`` (manual hardness)
-    - ``wetness`` (manual class)
-
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+    - ``top_height``: Top height of the snow layer (m)
+    - ``bottom_height``: Bottom height of the snow layer (m)
+    - ``thickness``: Thickness of the snow layer (m)
+    - ``grain_1``: Primary snow grain shape
+    - ``grain_2``: Secondary snow grain shape
+    - ``grain_size``: Snow grain size (m)
+    - ``grain_size_max``: Maximum snow grain size (m)
+    - ``hardness``: Manual hand hardness (intermediates are allowed, details in Fierz et al., 2009):
+            - F: Fist (1)
+            - 4F : 4 Fingers (2)
+            - 1F : 1 Finger (3)
+            - P : Pencil (4)
+            - K : Knife (5)
+    - ``wetness``: Manual snow wetness (intermediates are allowed, details in Fierz et al., 2009):
+            - D : Dry (1)
+            - M : Moist (2)
+            - W : Wet (3)
+            - V : Very wet (4)
+            - S : Soaked (5)
+    - ``formation_time``: Date of the layer formation
+    - ``formation_period_begin``: Date of the begining of the layer formation
+    - ``formation_period_end``: Date of the end of the layer formation
+    - ``loc``: Layer of concern, possible values are 'no', 'top', 'bottom', 'all', 'true', 'false'
+    - ``comment``: Comment on the layer
+    - ``uncertainty``: Quantitative uncertainty on the layer (see :ref:`uncertainty`)
+    - ``quality``: Quality flag on the layer (see :ref:`uncertainty`)
     """
+
     _data_config = dict(
         grain_1=dict(type='O',
                      values=GRAIN_SHAPES + [None]),
@@ -89,14 +92,16 @@ class Stratigraphy(BaseProfile):
 
 class TemperatureProfile(BaseProfile2):
     """
-    Temperature profile: ensemble of points and temperature measurements
+    Vertical profile of temperature profile.
 
-    The data contains:
+    The ``data`` key contains:
 
-    - ``height``
-    - ``temperature`` (°C)
+     - ``height``: Height of the temperature measurement (m)
+     - ``temperature``: Temperature value (°C)
+     - ``uncertainty``: Quantitative uncertainty of the point measurement (same unit as data).
+       See :ref:`uncertainty` for details.
+     - ``quality``: Quality flag of the point measurement. See :ref:`uncertainty` for details.
 
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
     """
     method_of_measurement: typing.Optional[typing.Literal[
         "Thermometer", "IR thermometer", "IR photography", "other"]] = None
@@ -115,14 +120,15 @@ class DensityProfile(BaseProfile2):
     """
     Vertical profile of density (kg/m3).
 
-    The data contains:
+    The ``data`` key contains:
 
-    - ``top_height``
-    - ``bottom_height``
-    - ``thickness``
-    - ``density`` (kg/m3)
-
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+    - ``top_height``: Top height of the measurement (m)
+    - ``bottom_height``: Bottom height of the measurement (m)
+    - ``thickness``: Thickness (m)
+    - ``density``: Density value (kg/m3)
+    - ``uncertainty``: Quantitative uncertainty of the point measurement (same unit as data).
+      See :ref:`uncertainty` for details.
+    - ``quality``: Quality flag of the point measurement. See :ref:`uncertainty` for details.
     """
     method_of_measurement: typing.Optional[typing.Literal[
         "Snow Tube", "Snow Cylinder", "Snow Cutter", "Snow wedge Cutter", "other gravimetric measurement method",
@@ -157,14 +163,15 @@ class LWCProfile(BaseProfile2):
     """
     Vertical profile of LWC (Liquid water content, % by volume).
 
-    The data contains:
+    The ``data`` key contains:
 
-    - ``top_height``
-    - ``bottom_height``
-    - ``thickness``
-    - ``lwc`` (% vol.)
-
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+    - ``top_height``: Top height of the measurement (m)
+    - ``bottom_height``: Bottom height of the measurement (m)
+    - ``thickness``: Thickness (m)
+    - ``lwc``: Liqud water content (% vol.)
+    - ``uncertainty``: Quantitative uncertainty of the measurement (same unit as data).
+      See :ref:`uncertainty` for details.
+    - ``quality``: Quality flag of the measurement. See :ref:`uncertainty` for details.
     """
     method_of_measurement: typing.Optional[typing.Literal[
         "Denoth Probe", "Snow Fork", "SnowPro Probe", "WISe", "other dielectric permittivity method",
@@ -205,16 +212,17 @@ class _SSAProfile(BaseProfile2):
 
 class SSAProfile(_SSAProfile):
     """
-    Vertical profile of SSA (Specific surface area, m2/kg), measured on layers.
+    Vertical profile of SSA (Specific surface area, m2/kg), measured on layers (volume).
 
-    The data contains:
+    The ``data`` key contains:
 
-    - ``top_height``
-    - ``bottom_height``
-    - ``thickness``
-    - ``ssa`` (m2/kg)
-
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+    - ``top_height``: Top height of the measurement (m)
+    - ``bottom_height``: Bottom height of the measurement (m)
+    - ``thickness``: Thickness (m)
+    - ``ssa``: SSA value (m2/kg)
+    - ``uncertainty``: Quantitative uncertainty of the measurement (same unit as data).
+      See :ref:`uncertainty` for details.
+    - ``quality``: Quality flag of the measurement. See :ref:`uncertainty` for details.
     """
     _data_config = dict(
         ssa=dict(min=0),
@@ -229,14 +237,15 @@ class SSAProfile(_SSAProfile):
 
 class SSAPointProfile(_SSAProfile):
     """
-    Vertical profile of SSA (Specific surface area, m2/kg), measured on points.
+    Vertical profile of SSA (Specific Surface Area), measured at points (heights).
 
-    The data contains:
+    The ``data`` key contains:
 
-    - ``height``
-    - ``ssa`` (m2/kg)
-
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+    - ``height``: Height of the measurement (m)
+    - ``ssa``: SSA value (m2/kg)
+    - ``uncertainty``: Quantitative uncertainty of the measurement (same unit as data).
+      See :ref:`uncertainty` for details.
+    - ``quality``: Quality flag of the measurement. See :ref:`uncertainty` for details.
     """
     _data_config = dict(
         _mode='Point',
@@ -273,16 +282,15 @@ class _HardnessProfile(BaseProfile2):
 
 class HardnessPointProfile(_HardnessProfile):
     """
-    Vertical profile of hardness (N).
+    Vertical profile of hardness.
 
-    The data contains:
+    The ``data`` key contains:
 
-    - ``top_height``
-    - ``bottom_height``
-    - ``thickness``
-    - ``hardness`` (N)
-
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+    - ``height``: Height of the measurement (m)
+    - ``hardness``: Hardness value (N)
+    - ``uncertainty``: Quantitative uncertainty of the measurement (same unit as data).
+      See :ref:`uncertainty` for details.
+    - ``quality``: Quality flag of the measurement. See :ref:`uncertainty` for details.
     """
     _data_config = dict(
         _mode='Point',
@@ -298,21 +306,21 @@ class HardnessPointProfile(_HardnessProfile):
 
 class HardnessProfile(_HardnessProfile):
     """
-    Special type of Hardness profile for RamSonde measurements
-    or Hardness profiles by layer
+    Vertical profile of hardness profile, measured on snow layers (e.g. for RamSonde measurements).
 
-    The data contains:
+    The ``data`` key contains:
 
-    - ``top_height``
-    - ``bottom_height``
-    - ``thickness``
-    - ``hardness`` (N)
+    - ``top_height``: Top height of the measurement (m)
+    - ``bottom_height``: Bottom height of the measurement (m)
+    - ``thickness``: Thickness (m)
+    - ``hardness`` (N): Hardness value (N)
     - ``weight_hammer`` (kg)
     - ``weight_tube`` (kg)
     - ``n_drops`` (-)
     - ``drop_height`` (m)
-
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+    - ``uncertainty``: Quantitative uncertainty of the measurement (same unit as data).
+      See :ref:`uncertainty` for details.
+    - ``quality``: Quality flag of the measurement. See :ref:`uncertainty` for details.
     """
     _data_config = dict(
         hardness=dict(min=0),
@@ -334,27 +342,24 @@ class StrengthProfile(BaseProfile2):
     """
     Vertical profile of strength (N).
 
-    The data contains:
+    The ``data`` key contains:
 
-
-    - ``top_height``
-    - ``bottom_height``
-    - ``thickness``
-    - ``strength`` (N)
-    - ``fracture_character`` (optional)
-
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
-
-    Fracture character are one of the following possibilities:
-
-    - SP: Sudden planar
-    - SC: Sudden collapse
-    - SDN: Sudden (both)
-    - RP: Resistant planar
-    - PC: Progressive compression
-    - RES: Resistant (both)
-    - BRK or B: Break
-    - X: Other/Unknown
+    - ``top_height``: Top height of the measurement (m)
+    - ``bottom_height``: Bottom height of the measurement (m)
+    - ``thickness``: Thickness (m)
+    - ``strength``: Strength value (N)
+    - ``fracture_character`` (optional):
+        - SP: Sudden planar
+        - SC: Sudden collapse
+        - SDN: Sudden (both)
+        - RP: Resistant planar
+        - PC: Progressive compression
+        - RES: Resistant (both)
+        - BRK or B: Break
+        - X: Other/Unknown
+    - ``uncertainty``: Quantitative uncertainty of the measurement (same unit as data).
+      See :ref:`uncertainty` for details.
+    - ``quality``: Quality flag of the measurement. See :ref:`uncertainty` for details.
     """
     method_of_measurement: typing.Optional[typing.Literal[
         "Shear Frame",
@@ -390,14 +395,16 @@ class ImpurityProfile(BaseProfile2):
     """
     Vertical profile of impurities (mass or volume fraction).
 
-    The data contains:
+    The ``data`` key contains:
 
-    - ``top_height``
-    - ``bottom_height``
-    - ``thickness``
-    - ``mass_fraction`` or ``volume_fraction``
-
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+    - ``top_height``: Top height of the measurement (m)
+    - ``bottom_height``: Bottom height of the measurement (m)
+    - ``thickness``: Thickness (m)
+    - ``mass_fraction``: Mass fraction of impurity (%)
+    - ``volume_fraction``: Volume fration of impurity (%)
+    - ``uncertainty``: Quantitative uncertainty of the measurement (same unit as data).
+      See :ref:`uncertainty` for details.
+    - ``quality``: Quality flag of the measurement. See :ref:`uncertainty` for details.
     """
     method_of_measurement: typing.Optional[typing.Literal[
         "other"]] = pydantic.Field(
@@ -437,14 +444,15 @@ class ScalarProfile(BaseProfile2):
     """
     Other profile of scalar data (not covered by other Profile class).
 
-    The data contains:
+    The ``data`` key contains:
 
-    - ``top_height``
-    - ``bottom_height``
-    - ``thickness``
-    - ``data``
-
-    and optionnally ``uncertainty`` (quantitative, same unit as data) or ``quality`` (see :ref:`uncertainty`).
+    - ``top_height``: Top height of the measurement (m)
+    - ``bottom_height``: Bottom height of the measurement (m)
+    - ``thickness``: Thickness (m)
+    - ``data``: Data value
+    - ``uncertainty``: Quantitative uncertainty of the measurement (same unit as data).
+      See :ref:`uncertainty` for details.
+    - ``quality``: Quality flag of the measurement. See :ref:`uncertainty` for details.
     """
     method_of_measurement: str = pydantic.Field(
         description="Measurement method description")
@@ -466,7 +474,7 @@ class VectorialProfile(ScalarProfile):
     """
     Other profile of vectorial data (data inherently multi-dimensional, with same unit and type).
 
-    ``data`` is a list or numpy array
+    The ``data`` key is a pandas.DataFrame with key data containing a python list of values.
     """
     rank: int = pydantic.Field(
         gt = 1,

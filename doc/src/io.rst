@@ -3,12 +3,12 @@
 Reading and writting data
 =========================
 
-The SnowProfile object (and only this one) can be stored into different formats and read from various formats. Functions to deals with I/O of SnowProfile objects are gathered into the ``snowprofile.io`` module which is documented below.
+The ``SnowProfile`` object can be created by reading various data formats and can be saved in different formats. Functions to deals with input/output (i/o) of ``SnowProfile`` objects are gathered into the ``snowprofile.io`` module, which is documented below.
 
 CAAML snowprofile format
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The CAAML international format for exchange of snow profile observation data is covered by this package with the two following functions:
+Reading and writting of the CAAML international format for exchange of snow profile observation data is possible by the snowprofile package with the two following functions:
 
 .. autofunction:: snowprofile.io.read_caaml6_xml
 
@@ -33,20 +33,20 @@ You can also get access (and re-read) to an internal JSON-based representation w
 Dict-based representation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can get a dict-based JSON-serializable representation of a SnowProfile object with:
+You can get a dict-based JSON-serializable representation of a ``SnowProfile`` object with:
 
 .. autofunction:: snowprofile.io.to_dict
 
 Meteo-France internal database (Bdclim)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Readers to get operational observations from Meteo-France internal database structure. It is only readers (no writing in this format possible).
+Readers to get operational observations from Meteo-France internal database structure are available (writting in this format is not possible).
 
-A first function allow to identify available observations:
+A function allows to identify available observations:
 
 .. autofunction:: snowprofile.io.search_mf_bdclim_dates
 
-A second function allow for getting the observation itself:
+A function allows to get the observation itself:
 
 .. autofunction:: snowprofile.io.read_mf_bdclim
 

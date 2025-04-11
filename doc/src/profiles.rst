@@ -1,9 +1,24 @@
-Base classes for profiles per parameter
-=======================================
+Base classes for property profiles
+==================================
 
+This module gathers the classes to handle profile data. These classes are designed to be used in the :py:class:`~snowprofile.SnowProfile` class.
 
-Note that all the class below have a ``data`` property that contains the profile data.
-It returns a pandas DataFrame for easy data processing. Note that the DataFrame should be reassignated to the ``data`` key so that the modifications are taken into account (a call to the ``data`` key return a copy of the internal data stored in the dataclass).
+- :py:class:`~snowprofile.profiles.Stratigraphy`
+- :py:class:`~snowprofile.profiles.TemperatureProfile`
+- :py:class:`~snowprofile.profiles.DensityProfile`
+- :py:class:`~snowprofile.profiles.LWCProfile`
+- :py:class:`~snowprofile.profiles.SSAProfile`
+- :py:class:`~snowprofile.profiles.SSAPointProfile`
+- :py:class:`~snowprofile.profiles.HardnessProfile`
+- :py:class:`~snowprofile.profiles.HardnessPointProfile`
+- :py:class:`~snowprofile.profiles.StrengthProfile`
+- :py:class:`~snowprofile.profiles.ImpurityProfile`
+- :py:class:`~snowprofile.profiles.ScalarProfile`
+- :py:class:`~snowprofile.profiles.VectorialProfile`
+
+**All the class above have a** ``data`` **key that contains the profile data, stored as a pandas DataFrame.**
+
+Note: when the dataframe is modified, the dataframe needs to be  reassignated to the ``data`` key so that the modifications are taken into account (a call to the ``data`` key returns a copy of the internal data stored in the dataclass).
 
 .. automodule:: snowprofile.profiles
    :members:

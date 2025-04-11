@@ -1,35 +1,50 @@
 .. _uncertainty:
 
-Uncertainty  and quality representation
-=======================================
+Describe data uncertainty and quality 
+=====================================
 
-Let's start with definitions:
+The package allows to describe a quantitative uncertainty and/or a quality flag of the data. They can be assigned to the whole profile, to specific layers or heights of the profile, or to metadata.
 
 Uncertainty
-    Uncertainty refers to the quantitative uncertainty defined as the 68% confidence interval on the measured value or standard deviation of various measurments (which is equivalent under the hypothesis of a normal distribution of errors).
+    Uncertainty refers to the quantitative uncertainty of the measured values, defined as the 68% confidence interval or the measurement standard deviation (which is equivalent under the hypothesis of a normal distribution of errors).
+    
+    The uncertainty field should not be filled by the standard, published uncertainty of the measurement method. It can be filled in when it differs from the standard uncertainty of the measurement method. For example, in the case of specific sampling conditions which may lead to a variation in measurement uncertainty, or if a standard deviation has been specifically estimated using several repeated measurements.
 
 Quality
-    Quality is a qualitative indication on the uncertainty on measurement compared to the typical uncertainty of the method used. We use a 4 level scale:
+    Quality is a qualitative indication of the quality of the measured values, compared with the standard quality expected for that measurement. We use a 4-level scale:
+    
+    - Good: reliable data, conforming to the standard quality of the method
+    - Uncertain: data whose quality is probably below the standard quality of the method (in case of doubts in the measurement and/or data processing procedure).
+    - Low quality: data whose quality is undoubtedly lower than the standard quality of the method.
+    - Bad: data undoubtedly erroneous.
+    
+    If not set to "Good", additional details should be provided in the associated profile comment.
 
-    - Good: reliable data within the standard quality of the method
-    - Uncertain: data whose quality is probably below the standard quality of the method (doubts in the measurement or data processing procedure).
-    - Low quality: data whose quality is undoubtedly below the standard quality of the method due to measurements or data processing procedure.
-    - Bad: undoubtedly erroneous data
 
-    As soon as the level is not set to "Good" (which is assumed if no provided), some additional details should be provided in the associated profile comment.
-
-
-Uncertainties on various metadatas
+Uncertainties on various metadata
 ----------------------------------
+Uncertainty and quality flag can be assigned to some metadata. 
 
-Uncertainties at profile level
-------------------------------
 
-For each profile, it is possible to associate an uncertainty and a quality flag that will apply to the whole profile. Keys ``uncertainty_of_measurement`` and ``quality_of_measurement`` are generally used. The quality and uncertainty then apply to the whole profile.
+Uncertainties over an entire profile
+------------------------------------
 
-The uncertainty field should NOT be filled the uncertainty corresponds to the standard uncertainty of the measurement method. It could be filled when it brings an added value compared to the typical value of the measurement method. This can be the case if special sampling conditions lead to an increased uncertainty or if it has been measured (by doing multiples sampling for instance) for instance.
+Uncertainty and quality flag can be assigned to an entire profile. Keys ``uncertainty_of_measurement`` and ``quality_of_measurement`` are generally used.
 
-Uncertainties at measurement level
-----------------------------------
 
-When uncertainty or quality of measurement varies significantly between the different layer or points of the snowpack, both uncertainty and quality could be specified in the ``data`` table directly at the layer or point level with keys ``uncertainty`` or ``quality``. If all the values are similar, then you should probably use uncertainties at profile level.
+Uncertainties on a data point or layer
+--------------------------------------
+
+Uncertainty and quality flag can be defined for specific layers or for specific heights of the profile. 
+For example, it can be used to describe higher uncertainties or lower quality due to the difficulty of sampling in a specific area of the snowpack.
+The keys ``uncertainty`` or ``quality`` can be filled for the considered layer or height in the ``data`` table.
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

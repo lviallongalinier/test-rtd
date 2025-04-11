@@ -18,7 +18,7 @@ __all__ = ['SnowProfile']
 class SnowProfile(pydantic.BaseModel, BaseMergeable):
 
     """
-    The base class for representing and manipulating a snow profile.
+    The base class for representing and handling a snow profile.
 
     Data content
     ^^^^^^^^^^^^
@@ -55,33 +55,32 @@ class SnowProfile(pydantic.BaseModel, BaseMergeable):
       Depth of the profile (m)
 
     profile_depth_std
-      Standard deviation of the profile depth around the snow pit in case of multiple measurements (m)
+      Standard deviation of the profile depth around the snow pit (in case of multiple measurements, m)
 
     profile_swe
-      Measured total SWE (mm or kg/m2)
+      Total SWE (mm or kg/m2)
 
     profile_swe_std
-      Standard deviation of the measured SWE (in case of mutilple measurements, mm or kg/m2)
+      Standard deviation of the total SWE (in case of mutilple measurements, mm or kg/m2)
 
     new_snow_24_depth
-      Depth of the sen snow (past 24h) (m)
+      Depth of the new snow from the past 24h (m)
 
     new_snow_24_depth_std
-      Standard deviation of the depth of new snow in case of multiple measurements (m)
+      Standard deviation of the depth of new snow (in case of multiple measurements, m)
 
     new_snow_24_swe
-      Measured total new snow SWE (24h) (mm or kg/m2)
+      SWE of the new snow from the past 24h (mm or kg/m2)
 
     new_snow_24_swe_std
-      Standard deviation of the measured new snow SWE (in case of mutilple measurements, mm or kg/m2)
+      Standard deviation of the SWE of the new snow from the past 24h (in case of mutilple measurements, mm or kg/m2)
 
     snow_transport
       Presence and type of snow transport
-
-      - No snow transport
-      - Modified saltation: snow transport that remains confined close to the ground
-      - Drifting snow: transport up to 6ft/2m
-      - Blowing snow: transport above 6ft/2m
+       - No snow transport
+       - Modified saltation: snow transport that remains confined close to the ground
+       - Drifting snow: transport up to 6ft/2m
+       - Blowing snow: transport above 6ft/2m
 
     snow_transport_occurence_24: typing.Optional[float] = pydantic.Field(None, ge=0, le=100)
 
@@ -120,10 +119,10 @@ class SnowProfile(pydantic.BaseModel, BaseMergeable):
     ''''''''''
 
     application
-      Information on the application that generated the profile (optional, str)
+      Information on the application or code that generated the profile (optional, str)
 
     application_version
-      Version of the application that generated the profile (optional, str)
+      Version of the application or code that generated the profile (optional, str)
 
     profiles_comment
       Comment associated to profiles, for CAAML compatibility only, do not use (str)
@@ -172,6 +171,7 @@ class SnowProfile(pydantic.BaseModel, BaseMergeable):
     impurity_profiles: typing.List[ImpurityProfile] = []
     other_scalar_profiles: typing.List[ScalarProfile] = []
     other_vectorial_profiles: typing.List[VectorialProfile] = []
-    stability_tests: typing.List[CTStabilityTest | ECTStabilityTest | RBStabilityTest | PSTStabilityTest | ShearFrameStabilityTest] = []
+    stability_tests: typing.List[
+        CTStabilityTest | ECTStabilityTest | RBStabilityTest | PSTStabilityTest | ShearFrameStabilityTest] = []
     additional_data: typing.Optional[AdditionalData] = None
     profile_additional_data: typing.Optional[AdditionalData] = None

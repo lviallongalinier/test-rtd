@@ -295,24 +295,25 @@ class BaseProfile(pydantic.BaseModel, BaseData):
         description="id of related profiles")
     comment: typing.Optional[str] = pydantic.Field(
         None,
-        description="A comment associated to the profile")
+        description="General comment associated to the profile")
     record_time: typing.Optional[datetime_with_tz] = pydantic.Field(
         None,
-        description="The time at which the profile observation have been done (python datetime object).")
+        description="Time at which the profile was done (python datetime object).")
     record_period: datetime_tuple_with_tz = pydantic.Field(
         (None, None),
-        description="Time period of the profile observation "
+        description="Time period during which the profile was done "
         "(tuple of two python datetime object representing the begin time and end time).")
     profile_depth: typing.Optional[float] = pydantic.Field(
         None, ge=0,
-        description="Profile depth if different from the SnowProfile one (m)")
+        description="Total snow depth at the profile location, "
+        "only if different from the general total snow depth reported in the metadata (m)")
     profile_swe: typing.Optional[float] = pydantic.Field(
         None, ge=0,
-        description="Profile SWE if specific measurement at the precise location of the profile and different from the "
-        "SnowProfile SWE (mm or kg/m2)")
+        description="SWE at the profile location, "
+        "only if specific measurement at the precise location of the profile (mm or kg/m2)")
     additional_data: typing.Optional[AdditionalData] = pydantic.Field(
         None,
-        description="Room to store additional data for CAAML compatibility (customData), do not use.")
+        description="Field to store additional data for CAAML compatibility (customData), do not use.")
 
     def __init__(self, data=None, data_dict=None, **kwargs):
         super().__init__(**kwargs)
@@ -332,21 +333,12 @@ class BaseProfile2(BaseProfile):
     quality_of_measurement: typing.Optional[typing.Literal[
         'Good', 'Uncertain', 'Low', 'Bad']] = pydantic.Field(
             None,
-            description="Qualitative uncertainty of measurement compared to the reference uncertainty "
-            "of the measurement method. Definitions: \n\n"
-            ""
-            "- Good: reliable data within the standard quality of the method\n"
-            "- Uncertain: data whose quality is probably below the standard quality of the method "
-            "(doubts in the measurement or data processing procedure). To be specified in the quality comment.\n"
-            "- Low quality: data whose quality is undoubtedly below the standard quality of the method due to "
-            "measurements or data processing procedure. To be specified in the quality comment.\n"
-            "- Bad: undoubtedly erroneous data\n\n"
-            "See :ref:`uncertainty` for details.")
+            description="Quality flag of the entire profile. See :ref:`uncertainty` for details.")
     uncertainty_of_measurement: typing.Optional[float] = pydantic.Field(
         None,
         gt = 0,
-        description="Quantitative uncertainty on ``data``: standard deviation or 68% confidence interval. "
-        "Same units as ``data``. See :ref:`uncertainty` for details.")
+        description="Quantitative uncertainty of the entire profile (same units as ``data``). "
+        "See :ref:`uncertainty` for details.")
     profile_nr: typing.Optional[int] = pydantic.Field(
         None, ge=0,
         description="Profile number (the lower is the higher priority)")
