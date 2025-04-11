@@ -74,7 +74,7 @@ manual_hardness_attribution = {
     5: 'K',
     '5': 'K'}
 
-wind_directions = {'N': 0, 'NE': 45, 'E': 90, 'SE': 135, 'S': 180,
+aspects = {'N': 0, 'NE': 45, 'E': 90, 'SE': 135, 'S': 180,
                    'SW': 225, 'W': 270, 'NW': 315, 'n/a': None}  # degrees
 wind_speed = {'C': 0, 'L': 13.5, 'M': 34.2, 'S': 51.3, 'X': 72}  # m/s
 

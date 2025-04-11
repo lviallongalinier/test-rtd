@@ -106,7 +106,7 @@ def read_caaml6_xml(filename):
         name=_parse_str(root, f'{nss}locRef/{nss}name'),
         point_type=_parse_str(root, f'{nss}locRef/{nss}obsPointSubType'),
         aspect=_parse_numeric(root, f'{nss}locRef/{nss}validAspect/{nss}AspectPosition/{nss}position',
-                              attribution_table=_constants.wind_directions),
+                              attribution_table=_constants.aspects),
         elevation=_parse_numeric(root, f'{nss}locRef/{nss}validElevation/{nss}ElevationPosition/{nss}position'),
         slope=_parse_numeric(root, f'{nss}locRef/{nss}validSlopeAngle/{nss}SlopeAnglePosition/{nss}position'),
         latitude=lat,
@@ -147,7 +147,7 @@ def read_caaml6_xml(filename):
             attribution_table=_constants.wind_speed),
         wind_direction=_parse_numeric(
             root, f'{base}/{nss}windDir/{nss}AspectPosition/{nss}position',
-            attribution_table=_constants.wind_directions),
+            attribution_table=_constants.aspects),
         air_temperature_measurement_height=_parse_numeric(
             root,
             f'{base}/{nss}metaData/{nss}airTempMeasurementHeight'),
