@@ -26,10 +26,10 @@ For the installation, see:
    install.rst
 
 
-Get started: Concepts to understand before using the package
+Get started: concepts to understand before using the package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You will manipulate :py:class:`~snowprofile.snowprofile.SnowProfile` objects mainly. Heve a llok to the corresponding documentation
+You will manipulate :py:class:`~snowprofile.snowprofile.SnowProfile` objects mainly. Have a look to the corresponding documentation.
 
 To get started, you can start with reading these first points:
 
@@ -73,6 +73,16 @@ I/O reading and writting data
    :maxdepth: 2
 
    io.rst
+
+
+Plot
+----
+
+.. toctree::
+   :maxdepth: 2
+   
+   plot.rst
+
 
 Documentation for developers
 ----------------------------

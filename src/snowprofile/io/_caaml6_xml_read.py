@@ -22,20 +22,19 @@ def read_caaml6_xml(filename):
     covered by this parser. Specifically, when dealing with profiles with unkown snow depth (not compulsoy in CAAML),
     the total depth may be set to 0 and the layer top/bottom height may be negative values.
 
-    Some data is partially parsed. For instance, lacking numeric data could be specified as
-    inapplicable (there is no value), missing (the value is not available when writting the data and may not exist),
-    template (the value will be available later), unknown (the value is not available to the writter of the data but
-    exists) or withheld (th evalue cannot be divulged). All these cases are treated the same way, by using a ``None``
-    python value. Some parameters can be represented with text rather than numeric measurement (e.g. grain size could
-    be reported in mm or with categories). For easier processing of the data, th package homogenize to numeric values
-    in the middle of the classes.
+    Some data is partially parsed. For instance, missing numeric data could be specified as
+    inapplicable (there is no value), missing (the value is not available when the data is written and may not exist),
+    template (the value will be available later), unknown(the value is not available to the data writer but exists),
+    or withheld (the value cannot be disclosed). All these cases are treated in the same way, using a 
+    python value ``None``. Some parameters can be represented by text rather than numeric measurements (e.g. grain size could
+    be reported in mm or by categories). To facilitate data processing, when categories are used, the package translates the category value into a numerical value
+    refering to the center of the category.
 
-    Finally, CAAML may contain some additional data defined by the user. This cannot be parsed as the structure is
-    unknown. Most of this data could be stored and rewritten to a new file but not all, especially not all those
-    associated to layers in the different profiles.
+    Finally, CAAML may contain some additional data defined by the user. This cannot be parsed, as the structure is
+    unknown. Most of this data could be stored and rewritten in a new file but not all, especially not those
+    associated with layers in the different profiles.
 
-    Hence, reading a CAAML file and rewritting it with this package may cause some corner data loss. Most users
-    will however not experience any trouble with that.
+    Hence, reading a CAAML file and rewritten it with this package may cause some data loss. Most users, however, will experience no problems in this respect.
 
     :param filename: File path of the CAAML/XML document to parse
     :type filename: str
