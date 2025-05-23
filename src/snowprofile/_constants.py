@@ -52,7 +52,7 @@ manual_wetness_attribution = {
     '5': 'S'}
 
 MANUAL_HARDNESS = ['F', 'F-4F', '4F', '4F-1F', '1F', '1F-P', 'P', 'P-K', 'K', 'K-I', 'I',
-                   'F-', 'F+', '4F-', '4F+', '1F-', '1F+', 'P-', 'P+', 'K-', 'K+']
+                   'F-', 'F+', '4F-', '4F+', '1F-', '1F+', 'P-', 'P+', 'K-', 'K+', 'I-', 'I+']
 
 manual_hardness_attribution = {
     1: 'F',
@@ -72,7 +72,11 @@ manual_hardness_attribution = {
     4.5: 'P-K',
     '4.5': 'P-K',
     5: 'K',
-    '5': 'K'}
+    '5': 'K',
+    5.5: 'K-I',
+    '5.5': 'K-I',
+    6: 'I',
+    '6': 'I'}
 
 aspects = {'N': 0, 'NE': 45, 'E': 90, 'SE': 135, 'S': 180,
                    'SW': 225, 'W': 270, 'NW': 315, 'n/a': None}  # degrees
