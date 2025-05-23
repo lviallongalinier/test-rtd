@@ -30,7 +30,7 @@ class BaseTestProfiles:
                                  self.key: self.values, },
                            **self.additional_keys)
         data = sp_pd.data
-        data['top_height'].iloc[1] += 1
+        data.loc[data.index[1], 'top_height'] += 1
 
         # check that at this stage values are unchanged and correctly sorted
         assert (sp_pd.data['top_height'].values == np.array([2, 1])).all()
@@ -43,7 +43,7 @@ class BaseTestProfiles:
             pass
 
         # Do a correct update
-        data['thickness'].iloc[1] += 1
+        data.loc[data.index[1], 'thickness'] += 1
         sp_pd.data = data
         # Check correctly updated
         assert (sp_pd.data['top_height'].values == np.array([2, 2])).all()
