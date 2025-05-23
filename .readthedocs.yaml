@@ -1,26 +1,18 @@
-# Read the Docs configuration file for Sphinx projects
-# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
-
-# Required
 version: 2
-
 formats:
   - epub
   - pdf
-
-- method: pip
-  path: .
-  extra_requirements:
-    - doc
-    - plots
-
-
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - doc
+        - plots
 build:
   os: ubuntu-24.04
   tools:
     python: "3.10"
-
-# Build documentation in the "docs/" directory with Sphinx
 sphinx:
   configuration: doc/src/conf.py
 
