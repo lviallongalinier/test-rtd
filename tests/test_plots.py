@@ -22,10 +22,12 @@ class TestIOCAAML6XML(unittest.TestCase):
         Test file provided on caaml.org website (SnowProfile_IACS_SLF22950.xml)
         """
         sp = snowprofile.io.read_caaml6_xml(os.path.join(_here, 'resources', 'SnowProfile_IACS_SLF22950.xml'))
-        fig = snowprofile.plot.plot_full(sp)
+        fig_f = snowprofile.plot.plot_full(sp)
+        fig_s = snowprofile.plot.plot_simple(sp)
         with tempfile.TemporaryDirectory(prefix='snowprofiletests') as dirname:
             filename = os.path.join(dirname, 'fig.png')
-            fig.savefig(filename)
+            fig_f.savefig(filename)
+            fig_s.savefig(filename)
 
     def test_plot_example3(self):
         """

@@ -7,8 +7,12 @@ Plot snowprofile
 Simple plot
 ^^^^^^^^^^^
 
-Plot all
-^^^^^^^^
+To have a quick overview of the main stratigrpahy stored in a SnowProfile object, the following function can be used:
+
+.. autofunction:: snowprofile.plot.plot_simple
+
+Plot all profiles
+^^^^^^^^^^^^^^^^^
 
 To plot the content of a SnowProfile object, the following function can be used:
 

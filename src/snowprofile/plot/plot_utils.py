@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import os.path
 
 import numpy as np
 import matplotlib
@@ -171,7 +172,10 @@ def plot_strati_profile(ax, stratigraphy, xlabel = 'Hand harness', ylabel = 'Hei
 
     """
 
-    snowiacs = matplotlib.font_manager.findfont('SnowSymbolsIACS')
+    _here = os.path.dirname(os.path.realpath(__file__))
+    snowiacs = os.path.join(_here, './SnowSymbolsIACS.ttf')
+    if not os.path.isfile(snowiacs):
+        snowiacs = matplotlib.font_manager.findfont('SnowSymbolsIACS')
     snowsymb = matplotlib.font_manager.FontProperties(fname=snowiacs)
 
     # get data
