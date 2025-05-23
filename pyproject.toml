@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "snowprofile"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
     'pydantic>=2,<3',
     'pandas',
@@ -20,6 +20,10 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "License :: CeCILL-C Free Software License Agreement (CECILL-C)",
 ]
+
+[project.urls]
+Homepage = "https://github.com/UMR-CNRM/snowprofile"
+Repository = "https://github.com/UMR-CNRM/snowprofile"
 
 
 [project.optional-dependencies]
@@ -37,3 +41,7 @@ plots = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+
+[tool.setuptools.package-data]
+"snowprofile.plot" = ["*.*"] 
